@@ -36,6 +36,14 @@ module HamlLint
       process_source(source)
     end
 
+    # Returns the last non empty line of the document or 1 if all lines are empty
+    #
+    # @return [Integer] last non empty line of the document or 1 if all lines are empty
+    def last_non_empty_line
+      index = source_lines.rindex { |l| !l.empty? }
+      (index || 0) + 1
+    end
+
     private
 
     # @param source [String] Haml code to parse
@@ -43,7 +51,7 @@ module HamlLint
     def process_source(source)
       @source = process_encoding(source)
       @source = strip_frontmatter(source)
-      @source_lines = @source.split(/\r\n|\r|\n/)
+      @source_lines = @source.split(/\r\n|\r|\n/, -1)
 
       @tree = process_tree(HamlLint::Adapter.detect_class.new(@source).parse)
     rescue Haml::Error => e
