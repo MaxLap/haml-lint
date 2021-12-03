@@ -83,8 +83,12 @@ describe HamlLint::RubyExtractor do
                   class: 'button'
       HAML
 
-      its(:source) { should == "link_to 'Link', path, class: 'button'" }
-      its(:source_map) { should == { 1 => 1 } }
+      its(:source) { should == <<~HAML.rstrip }
+        link_to 'Link',
+                path,
+                class: 'button'
+      HAML
+      its(:source_map) { should == { 1 => 1, 2 => 1, 3 => 1 } }
     end
 
     context 'with a tag containing a silent script node' do
@@ -137,7 +141,7 @@ describe HamlLint::RubyExtractor do
       HAML
 
       its(:source) { should == normalize_indent(<<-RUBY).rstrip }
-        {}.merge(one: 1, two: 2, 'three' => some_method)
+        W(one: 1, two: 2, 'three' => some_method)
         _haml_lint_puts_0 # tag
         _haml_lint_puts_1 # tag/
       RUBY
@@ -165,7 +169,7 @@ describe HamlLint::RubyExtractor do
       HAML
 
       its(:source) { should == normalize_indent(<<-RUBY.rstrip) }
-        {}.merge(:type=>'checkbox', special: 'true')
+        W(:type=>'checkbox', special: 'true')
         _haml_lint_puts_0 # tag
         _haml_lint_puts_1 # tag/
       RUBY
@@ -179,7 +183,7 @@ describe HamlLint::RubyExtractor do
       HAML
 
       its(:source) { should == normalize_indent(<<-RUBY.rstrip) }
-        {}.merge(tag_options_method)
+        W(tag_options_method)
         _haml_lint_puts_0 # tag
         _haml_lint_puts_1 # tag/
       RUBY
@@ -193,7 +197,7 @@ describe HamlLint::RubyExtractor do
       HAML
 
       its(:source) { should == normalize_indent(<<-RUBY).rstrip }
-        {}.merge({\"one\" => 1,\"two\" => 2,\"three\" => some_method,})
+        W({\"one\" => 1,\"two\" => 2,\"three\" => some_method,})
         _haml_lint_puts_0 # tag
         _haml_lint_puts_1 # tag/
       RUBY
@@ -207,7 +211,7 @@ describe HamlLint::RubyExtractor do
       HAML
 
       its(:source) { should == normalize_indent(<<-RUBY).rstrip }
-        {}.merge(one: 1)
+        W(one: 1)
         _haml_lint_puts_0 # tag
         script
         _haml_lint_puts_1 # tag/
@@ -224,12 +228,14 @@ describe HamlLint::RubyExtractor do
       HAML
 
       its(:source) { should == normalize_indent(<<-RUBY).rstrip }
-        {}.merge(one: 1, two: 2, 'three' => 3)
+        W(one: 1,
+          two: 2,
+          'three' => 3)
         _haml_lint_puts_0 # tag
         _haml_lint_puts_1 # tag/
       RUBY
 
-      its(:source_map) { should == { 1 => 1, 2 => 1, 3 => 1 } }
+      its(:source_map) { should == { 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1 } }
     end
 
     context 'with a tag with 1.8-style hash attributes of string key/values' do

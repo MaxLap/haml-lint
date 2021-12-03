@@ -18,7 +18,7 @@ describe HamlLint::Runner do
       let(:mock_linter) { double('linter', lints: [], name: 'Blah') }
 
       let(:options) do
-        base_options.merge(files: files, reporter: reporter)
+        base_options.merge(reporter: reporter)
       end
 
       before do
@@ -78,11 +78,61 @@ describe HamlLint::Runner do
       end
 
       context 'when :parallel option is specified' do
-        let(:options) { base_options.merge(files: files, parallel: true) }
+        let(:options) { base_options.merge(parallel: true) }
 
         it 'warms up the cache in parallel' do
           runner.should_receive(:warm_cache).and_call_original
           subject
+        end
+      end
+
+      context 'when :autocorrect option' do
+        include_context 'isolated environment'
+
+        let(:files) { %w[with_autocorrectable_mistake.haml] }
+        let(:initial_haml) { <<~HAML }
+          %div
+            - foo(bar ,  42)
+        HAML
+        let(:corrected_haml) { <<~HAML }
+          %div
+            - foo(bar, 42)
+        HAML
+
+        before do
+          # The runner needs to actually look for files to lint
+          runner.should_receive(:collect_lints).and_call_original
+          File.write('with_autocorrectable_mistake.haml', initial_haml)
+        end
+
+        context 'is set to :safe' do
+          let(:options) { base_options.merge(autocorrect: :safe) }
+
+          it 'writes out the corrected file' do
+            if Gem::Version.new(::RuboCop::Version::STRING) >= Gem::Version.new('0.87')
+              subject
+              File.read('with_autocorrectable_mistake.haml').should == corrected_haml
+            else
+              expect { subject }.to raise_error(NotImplementedError,
+                                                /doesn't support safe auto-correct/)
+            end
+          end
+        end
+
+        context 'is set to :all' do
+          let(:options) { base_options.merge(autocorrect: :all) }
+
+          it 'writes out the corrected file' do
+            subject
+            File.read('with_autocorrectable_mistake.haml').should == corrected_haml
+          end
+        end
+
+        context 'is not set' do
+          it "doesn't write out the corrected file" do
+            subject
+            File.read('with_autocorrectable_mistake.haml').should == initial_haml
+          end
         end
       end
 
@@ -117,7 +167,7 @@ describe HamlLint::Runner do
     context 'integration tests' do
       context 'when the fail-fast option is specified with fail-level' do
         let(:files) { %w[example.haml example2.haml] }
-        let(:options) { base_options.merge(fail_fast: fail_fast, fail_level: :error, files: files) }
+        let(:options) { base_options.merge(fail_fast: fail_fast, fail_level: :error) }
 
         include_context 'isolated environment'
 

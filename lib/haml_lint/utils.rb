@@ -160,5 +160,28 @@ module HamlLint
     ensure
       old_env.each { |var, value| ENV[var.to_s] = value }
     end
+
+    def indent(string, nb_indent)
+      if nb_indent < 0
+        string.gsub(/^ {1,#{-nb_indent}}/, '')
+      else
+        string.gsub(/^/, ' ' * nb_indent)
+      end
+    end
+
+    def indent_lines_after_first(string, nb_indent)
+      if nb_indent == 0
+        return string
+      elsif nb_indent > 0
+        regexp = /^/
+        indent = ' ' * nb_indent
+      else
+        regexp = /^ {1,#{-nb_indent}}/
+        indent = ''
+      end
+      lines = string.lines
+      lines[1..-1].each { |l| l.sub!(regexp, indent) }
+      lines.join
+    end
   end
 end

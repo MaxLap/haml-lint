@@ -2,11 +2,14 @@
 
 require 'haml_lint/ruby_extractor'
 require 'rubocop'
+require 'tempfile'
 
 module HamlLint
   # Runs RuboCop on Ruby code contained within HAML templates.
-  class Linter::RuboCop < Linter
+  class Linter::RuboCop < Linter # rubocop:disable Metrics/ClassLength
     include LinterRegistry
+
+    SUPPORTS_AUTOCORRECT = true
 
     # Maps the ::RuboCop::Cop::Severity levels to our own levels.
     SEVERITY_MAP = {
@@ -18,42 +21,52 @@ module HamlLint
       warning: :warning,
     }.freeze
 
-    def visit_root(_node)
+    def visit_root(_node) # rubocop:disable Metrics/AbcSize
       extractor = HamlLint::RubyExtractor.new
-      extracted_source = extractor.extract(document)
+      extracted_source = extractor.extract(document, autocorrect: @autocorrect)
 
       return if extracted_source.source.empty?
 
-      find_lints(extracted_source.source, extracted_source.source_map)
+      new_ruby_source = process_ruby_source(extracted_source.source, extracted_source.source_map)
+
+      if @autocorrect && new_ruby_source != extracted_source.source
+        # Autocorrect did changes, so we must merge them back into the document
+        haml_lines = extractor.haml_lines_with_corrections(document.source_lines,
+                                                           extracted_source,
+                                                           new_ruby_source)
+        document.change_source(haml_lines.join("\n"))
+      end
     end
 
     private
 
     # A single CLI instance is shared between files to avoid RuboCop
     # having to repeatedly reload .rubocop.yml.
-    def self.rubocop_cli
+    def self.rubocop_cli # rubocop:disable Lint/IneffectiveAccessModifier:
       # The ivar is stored on the class singleton rather than the Linter instance
       # because it can't be Marshal.dump'd (as used by Parallel.map)
       @rubocop_cli ||= ::RuboCop::CLI.new
     end
 
-    # Executes RuboCop against the given Ruby code and records the offenses as
-    # lints.
+    # Executes RuboCop against the given Ruby code, records the offenses as
+    # lints and runs autocorrect if requested.
     #
     # @param ruby [String] Ruby code
     # @param source_map [Hash] map of Ruby code line numbers to original line
     #   numbers in the template
-    def find_lints(ruby, source_map)
-      filename =
-        if document.file
-          "#{document.file}.rb"
-        else
-          'ruby_script.rb'
-        end
+    # @return [String] The autocorrected Ruby source code
+    def process_ruby_source(ruby, source_map)
+      filename = document.file || 'ruby_script'
 
-      with_ruby_from_stdin(ruby) do
-        extract_lints_from_offenses(lint_file(self.class.rubocop_cli, filename), source_map)
+      final_ruby = Tempfile.open([filename, '.rb']) do |tempfile|
+        tempfile.write(ruby)
+        tempfile.close
+        extract_lints_from_offenses(lint_file(self.class.rubocop_cli, tempfile.path), source_map)
+        tempfile.open
+        tempfile.read
       end
+
+      final_ruby
     end
 
     # Defined so we can stub the results in tests
@@ -102,24 +115,76 @@ module HamlLint
     def rubocop_flags
       flags = %w[--format HamlLint::OffenseCollector]
       flags += ['--config', ENV['HAML_LINT_RUBOCOP_CONF']] if ENV['HAML_LINT_RUBOCOP_CONF']
-      flags += ['--stdin']
+      flags += ignored_cops_flags
+      flags += rubocop_autocorrect_flags
       flags
     end
 
-    # Overrides the global stdin to allow RuboCop to read Ruby code from it.
-    #
-    # @param ruby [String] the Ruby code to write to the overridden stdin
-    # @param _block [Block] the block to perform with the overridden stdin
-    # @return [void]
-    def with_ruby_from_stdin(ruby, &_block)
-      original_stdin = $stdin
-      stdin = StringIO.new
-      stdin.write(ruby)
-      stdin.rewind
-      $stdin = stdin
-      yield
-    ensure
-      $stdin = original_stdin
+    def rubocop_autocorrect_flags # rubocop:disable Metrics/PerceivedComplexity
+      return [] unless @autocorrect
+
+      rubocop_version = Gem::Version.new(::RuboCop::Version::STRING)
+
+      if @autocorrect == :safe
+        if rubocop_version >= Gem::Version.new('0.87')
+          ['--auto-correct']
+        else
+          msg = "This rubocop version (#{::RuboCop::Version::STRING}) doesn't " \
+                'support safe auto-correct. Need at least 0.87'
+          raise NotImplementedError, msg
+        end
+      elsif @autocorrect == :all
+        if rubocop_version >= Gem::Version.new('0.87')
+          ['--auto-correct-all']
+        else
+          ['--auto-correct']
+        end
+      else
+        raise "Unexpected autocorrect option: #{@autocorrect.inspect}"
+      end
+    end
+
+    # Because of autocorrect, we need to pass the ignored cops to RuboCop to
+    # prevent it from doing fixes we don't want.
+    # Because cop names changed names over time, we cleanup those that don't exist
+    # anymore or don't exist yet.
+    # This is not exhaustive, it's only for the cops that are in config/default.yml
+    def ignored_cops_flags # rubocop:disable Metrics/MethodLength
+      ignored_cops = config['ignored_cops']
+      rubocop_version = Gem::Version.new(::RuboCop::Version::STRING)
+      ignored_cops -= if rubocop_version >= Gem::Version.new('0.53')
+                        %w[Lint/BlockAlignment Lint/EndAlignment]
+                      else
+                        %w[Layout/BlockAlignment Layout/EndAlignment]
+                      end
+
+      ignored_cops -= if rubocop_version >= Gem::Version.new('0.77')
+                        %w[Layout/AlignHash
+                           Layout/AlignParameters
+                           Layout/TrailingBlankLines]
+                      else
+                        %w[Layout/HashAlignment
+                           Layout/ParameterAlignment
+                           Layout/TrailingEmptyLines]
+                      end
+
+      ignored_cops -= if rubocop_version >= Gem::Version.new('0.79')
+                        ['Metrics/LineLength']
+                      else
+                        ['Layout/LineLength']
+                      end
+
+      if @autocorrect
+        ignored_cops += config['ignored_autocorrect_cops']
+        # Running not auto-correctable cops during the auto-correct step is just wasteful and noisy
+        if ::RuboCop::Cop::Registry.respond_to?(:all)
+          cops_without_autocorrect = ::RuboCop::Cop::Registry.all.reject(&:support_autocorrect?)
+          # This cop cannot be disabled
+          cops_without_autocorrect.delete(::RuboCop::Cop::Lint::Syntax)
+          ignored_cops += cops_without_autocorrect.map { |cop| cop.badge.to_s }
+        end
+      end
+      ['--except', ignored_cops.uniq.join(',')]
     end
   end
 

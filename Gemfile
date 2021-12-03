@@ -18,3 +18,5 @@ gem 'overcommit', '0.58.0'
 gem 'rubocop', '0.79.0'
 
 gem 'coveralls', require: false
+
+gem 'pry'

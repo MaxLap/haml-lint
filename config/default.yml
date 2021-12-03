@@ -88,24 +88,24 @@ linters:
     # These cops are incredibly noisy when it comes to HAML templates, so we
     # ignore them.
     ignored_cops:
-      - Lint/BlockAlignment
-      - Lint/EndAlignment
+      #- Lint/BlockAlignment
+      #- Lint/EndAlignment
       - Lint/Void
-      - Layout/AlignHash # renamed to Layout/HashAlignment in rubocop 0.77
-      - Layout/AlignParameters # renamed to Layout/ParameterAlignment in rubocop 0.77
-      - Layout/ArgumentAlignment
-      - Layout/BlockAlignment # moved from Lint/ in 0.53
-      - Layout/CaseIndentation
-      - Layout/ElseAlignment
-      - Layout/EndAlignment # moved from Lint/ in 0.53
-      - Layout/EndOfLine
-      - Layout/HashAlignment
-      - Layout/IndentationWidth
+      #- Layout/AlignHash # renamed to Layout/HashAlignment in rubocop 0.77
+      #- Layout/AlignParameters # renamed to Layout/ParameterAlignment in rubocop 0.77
+      #- Layout/ArgumentAlignment
+      #- Layout/BlockAlignment # moved from Lint/ in 0.53
+      #- Layout/CaseIndentation
+      #- Layout/ElseAlignment
+      #- Layout/EndAlignment # moved from Lint/ in 0.53
+      #- Layout/EndOfLine
+      #- Layout/HashAlignment
+      #- Layout/IndentationWidth
       - Layout/LineLength # renamed from Metrics/LineLength in rubocop 0.79.0
-      - Layout/ParameterAlignment
+      #- Layout/ParameterAlignment
       - Layout/TrailingBlankLines # renamed to Layout/TrailingEmptyLines in rubocop 0.77
       - Layout/TrailingEmptyLines
-      - Layout/TrailingWhitespace
+      #- Layout/TrailingWhitespace
       - Metrics/BlockLength
       - Metrics/BlockNesting
       - Metrics/LineLength
@@ -114,6 +114,10 @@ linters:
       - Style/IfUnlessModifier
       - Style/Next
       - Style/WhileUntilModifier
+
+    # Those are cops that are not already ignored that our auto-correct doesn't support
+    ignored_autocorrect_cops:
+      - Style/CaseLikeIf
 
   RubyComments:
     enabled: true

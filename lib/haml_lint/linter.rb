@@ -7,6 +7,9 @@ module HamlLint
   class Linter
     include HamlVisitor
 
+    # Linters can override this to indicate that they support the autocorrect system
+    SUPPORTS_AUTOCORRECT = false
+
     # List of lints reported by this linter.
     #
     # @todo Remove once spec/support/shared_linter_context returns an array of
@@ -24,9 +27,10 @@ module HamlLint
     # Runs the linter against the given Haml document.
     #
     # @param document [HamlLint::Document]
-    def run(document)
+    def run(document, autocorrect: nil)
       @document = document
       @lints = []
+      @autocorrect = autocorrect
       visit(document.tree)
       @lints
     rescue Parser::SyntaxError => e
@@ -39,6 +43,29 @@ module HamlLint
           e.to_s,
           :error
         )
+    rescue StandardError => e
+      msg = "Couldn't process the file"
+      if @autocorrect
+        # Those lints related to auto-correction were not saved, so don't display them
+        @lints = []
+        msg += " for autocorrect '#{@autocorrect}'"
+      else
+        msg += " for linting"
+      end
+      msg += ". #{e.class.name}: #{e.message}"
+
+      @lints <<
+        HamlLint::Lint.new(
+          self,
+          document.file,
+          nil,
+          msg,
+          :error
+        )
+      raise if ENV['HAMLLINT_DEBUG']
+      @lints
+    ensure
+      @autocorrect = nil
     end
 
     # Returns the simple name for this linter.

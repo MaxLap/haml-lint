@@ -7,7 +7,7 @@
 module HamlLint
   module Spec
     module SharedLinterContext
-      RSpec.shared_context 'linter' do
+      RSpec.shared_context 'linter' do |autocorrect: nil|
         let(:options) do
           {
             config: HamlLint::ConfigurationLoader.default_configuration,
@@ -20,7 +20,7 @@ module HamlLint
 
         subject { described_class.new(config) }
 
-        before { subject.run(document) }
+        before { subject.run(document, autocorrect: autocorrect) }
       end
     end
   end
