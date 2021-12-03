@@ -10,6 +10,8 @@ else
   require 'simplecov'
 end
 
+ENV['HAMLLINT_DEBUG'] = 'true'
+
 # Disable colors in tests because we don't normally want to test it
 require 'rainbow'
 Rainbow.enabled = false
