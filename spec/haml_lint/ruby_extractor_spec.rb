@@ -440,6 +440,35 @@ describe HamlLint::RubyExtractor do
       its(:source_map) { should == { 1 => 2, 2 => 3, 3 => 4, 4 => 5 } }
     end
 
+    context 'with a Ruby filter that has blank lines' do
+      let(:haml) { <<~HAML }
+        :ruby
+
+          method_one
+
+          if condition
+
+            method_two
+
+          end
+      HAML
+
+      its(:source) { should == <<~RUBY.rstrip }
+
+        method_one
+
+        if condition
+
+          method_two
+
+        end
+      RUBY
+
+      its(:source_map) do
+        should == { 1 => 2, 2 => 3, 3 => 4, 4 => 5, 5 => 6, 6 => 7, 7 => 8, 8 => 9 }
+      end
+    end
+
     context 'with a Ruby filter containing block keywords' do
       let(:haml) { <<-HAML }
         :ruby
