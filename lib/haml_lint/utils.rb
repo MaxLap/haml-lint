@@ -145,6 +145,12 @@ module HamlLint
       count
     end
 
+
+    def insert_after_indentation(code, insert)
+      index = code.index(/\S/)
+      to_haml_line = "#{code[0...index]}#{insert}#{code[index..-1]}"
+    end
+
     # Calls a block of code with a modified set of environment variables,
     # restoring them once the code has executed.
     #

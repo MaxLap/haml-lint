@@ -1,0 +1,290 @@
+!# These are examples of how the script behave
+!# Comments that are not executed start with !#
+!# This is passed through erb for cases where that is useful
+
+!# The examples are in 4 steps:
+!# 1) input haml
+!# 2) extracted ruby
+!# 3) the corrected ruby
+!# 4) the corrected haml
+!# Each steps is delimited by a line with ---
+
+!# Examples start with a !!! followed by the name
+!# If an example's steps contains the ^ character, it will be
+!# executed twice:
+!# * once with the ^ replaced by -, ^^ are removed and %% are removed
+!# * once with the ^ replaced by =, ^^ replace by the special prefix
+!#   used by haml-lint in the ruby code to handle = scripts,
+!#   and %% replaced by as many spaces as takes (to indent multi-line scripts)
+!# This way, the same examples can be reused for silent and non-silent scripts.
+
+!!! fixes a single-line one
+^ foo(:bar =>  123)
+---
+haml_lint_marker_1
+^^foo(:bar =>  123)
+haml_lint_marker_3
+---
+haml_lint_marker_1
+^^foo(bar: 123)
+haml_lint_marker_3
+---
+^ foo(bar: 123)
+
+
+!!! fixes a single-line one that was indented by a tag
+%tag
+  ^ foo(:bar =>  123)
+---
+if haml_lint_tag_indent
+  haml_lint_marker_2
+  ^^foo(:bar =>  123)
+  haml_lint_marker_4
+end
+---
+if haml_lint_tag_indent
+  haml_lint_marker_2
+  ^^foo(bar: 123)
+  haml_lint_marker_4
+end
+---
+%tag
+  ^ foo(bar: 123)
+
+
+!!! fixes a single-line one that was indented by ruby code
+^ deeper do
+  ^ foo(:bar =>  123)
+---
+haml_lint_marker_1
+^^deeper do
+  ^^foo(:bar =>  123)
+end
+haml_lint_marker_5
+---
+haml_lint_marker_1
+^^deeper do
+  ^^foo(bar: 123)
+end
+haml_lint_marker_5
+---
+^ deeper do
+  ^ foo(bar: 123)
+
+
+!!! leave a correct single-line as-is
+^ foo(bar, 42)
+---
+haml_lint_marker_1
+^^foo(bar, 42)
+haml_lint_marker_3
+---
+haml_lint_marker_1
+^^foo(bar, 42)
+haml_lint_marker_3
+---
+^ foo(bar, 42)
+
+
+!!! multiple silent-scripts
+^ foo(:bar =>  123)
+^ abc(:hello =>  42)
+---
+haml_lint_marker_1
+^^foo(:bar =>  123)
+^^abc(:hello =>  42)
+haml_lint_marker_4
+---
+haml_lint_marker_1
+^^foo(bar: 123)
+^^abc(hello: 42)
+haml_lint_marker_4
+---
+^ foo(bar: 123)
+^ abc(hello: 42)
+
+
+!!! with a blank line between
+^ foo(:bar =>  123)
+
+^ abc(:hello =>  42)
+---
+haml_lint_marker_1
+^^foo(:bar =>  123)
+
+^^abc(:hello =>  42)
+haml_lint_marker_5
+---
+haml_lint_marker_1
+^^foo(bar: 123)
+
+^^abc(hello: 42)
+haml_lint_marker_5
+---
+^ foo(bar: 123)
+
+^ abc(hello: 42)
+
+
+!!! fixes a multi-line one
+^ foo(:bar =>  123,
+      :hello =>  42)
+---
+haml_lint_marker_1
+^^foo(:bar =>  123,
+%%    :hello =>  42)
+haml_lint_marker_4
+---
+haml_lint_marker_1
+^^foo(bar: 123,
+%%    hello: 42)
+haml_lint_marker_4
+---
+^ foo(bar: 123,
+      hello: 42)
+
+
+!!! fixes a multi-line one with spaces after the line splitting comma
+!# Uses ERB to ensure there are spaces without IDE's erasing them.
+^ foo(:bar =>  123,<%= '  ' %>
+      :hello =>  42)
+---
+haml_lint_marker_1
+^^foo(:bar =>  123,<%= '  ' %>
+%%    :hello =>  42)
+haml_lint_marker_4
+---
+haml_lint_marker_1
+^^foo(bar: 123,
+%%    hello: 42)
+haml_lint_marker_4
+---
+^ foo(bar: 123,
+      hello: 42)
+
+
+!!! fixes a multi-line one with extra indent
+^ deeper do
+  ^ foo(something ,  hello ,
+                world  , :abc =>  42)
+---
+haml_lint_marker_1
+^^deeper do
+  ^^foo(something ,  hello ,
+  %%            world  , :abc =>  42)
+end
+haml_lint_marker_6
+---
+haml_lint_marker_1
+^^deeper do
+  ^^foo(something, hello,
+  %%    world, abc: 42)
+end
+haml_lint_marker_6
+---
+^ deeper do
+  ^ foo(something, hello,
+        world, abc: 42)
+
+
+!!! fixes a multi-line one with missing indent
+^ deeper do
+  ^ foo(something ,  hello ,
+     world  , :abc =>  42)
+---
+haml_lint_marker_1
+^^deeper do
+  ^^foo(something ,  hello ,
+  %% world  , :abc =>  42)
+end
+haml_lint_marker_6
+---
+haml_lint_marker_1
+^^deeper do
+  ^^foo(something, hello,
+  %%    world, abc: 42)
+end
+haml_lint_marker_6
+---
+^ deeper do
+  ^ foo(something, hello,
+        world, abc: 42)
+
+
+!!! fixes a multi-line one less indented than the script is
+- deeper do
+  - foo(something ,  hello ,
+ world  , :abc =>  42)
+---
+haml_lint_marker_1
+deeper do
+  foo(something ,  hello ,
+world  , :abc =>  42)
+end
+haml_lint_marker_6
+---
+haml_lint_marker_1
+deeper do
+  foo(something, hello,
+      world, abc: 42)
+end
+haml_lint_marker_6
+---
+- deeper do
+  - foo(something, hello,
+        world, abc: 42)
+
+
+!!! fixes a multi-line one which adds lines
+^ this_is_a(quite_long_line, quite_long_line, quite_long_line, dont_you_think) if and_the_condition_makes_it_worst
+---
+haml_lint_marker_1
+^^this_is_a(quite_long_line, quite_long_line, quite_long_line, dont_you_think) if and_the_condition_makes_it_worst
+haml_lint_marker_3
+---
+haml_lint_marker_1
+if and_the_condition_makes_it_worst
+  ^^this_is_a(quite_long_line, quite_long_line, quite_long_line, dont_you_think)
+end
+haml_lint_marker_3
+---
+- if and_the_condition_makes_it_worst
+  ^ this_is_a(quite_long_line, quite_long_line, quite_long_line, dont_you_think)
+
+
+!!! fixes multiple silent-scripts which can be merged into one
+- if this_is_short
+  - this_is_short_too
+---
+haml_lint_marker_1
+if this_is_short
+  this_is_short_too
+end
+haml_lint_marker_5
+---
+haml_lint_marker_1
+this_is_short_too if this_is_short
+haml_lint_marker_5
+---
+- this_is_short_too if this_is_short
+
+
+!!! doesn't fix multiple out-scripts which can be merged into one
+!# The multiple = signs can't be merged on a single line
+= if this_is_short
+  = this_is_short_too
+---
+haml_lint_marker_1
+HL.out = if this_is_short
+  HL.out = this_is_short_too
+end
+haml_lint_marker_5
+---
+haml_lint_marker_1
+HL.out = if this_is_short
+  HL.out = this_is_short_too
+end
+haml_lint_marker_5
+---
+= if this_is_short
+  = this_is_short_too

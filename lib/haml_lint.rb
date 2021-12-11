@@ -39,3 +39,8 @@ end
 Dir[File.expand_path('haml_lint/reporter/*.rb', File.dirname(__FILE__))].sort.each do |file|
   require file
 end
+
+require 'haml_lint/ruby_extraction/base_chunk'
+Dir[File.expand_path('haml_lint/ruby_extraction/*.rb', File.dirname(__FILE__))].sort.each do |file|
+  require file
+end

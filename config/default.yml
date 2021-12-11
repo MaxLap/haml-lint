@@ -83,7 +83,7 @@ linters:
     enabled: true
     severity: error
 
-  RuboCop:
+  RuboCop: &defaults
     enabled: true
     # These cops are incredibly noisy when it comes to HAML templates, so we
     # ignore them.
@@ -111,13 +111,18 @@ linters:
       - Metrics/LineLength
       - Naming/FileName
       - Style/FrozenStringLiteralComment
-      - Style/IfUnlessModifier
+      #- Style/IfUnlessModifier
       - Style/Next
-      - Style/WhileUntilModifier
+      #- Style/WhileUntilModifier
 
     # Those are cops that are not already ignored that our auto-correct doesn't support
     ignored_autocorrect_cops:
-      - Style/CaseLikeIf
+      #- Style/CaseLikeIf
+      #- Style/CaseIndentation # When must always be indented deeper than case in haml's scripts
+      - Layout/CaseIndentation # When must always be indented deeper than case in haml's scripts
+
+  RuboCop2:
+    <<: *defaults
 
   RubyComments:
     enabled: true

@@ -24,6 +24,7 @@ Dir[File.dirname(__FILE__) + '/support/**/*.rb'].sort.each { |f| require f }
 
 RSpec.configure do |config|
   config.include DirectorySpecHelpers
+  config.extend ExamplesParsingHelpers
 
   config.expect_with :rspec do |c|
     c.syntax = %i[expect should]
