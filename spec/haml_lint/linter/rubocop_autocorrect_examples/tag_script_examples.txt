@@ -1,0 +1,152 @@
+!!! fixes tag's script
+%tag= foo(:bar =>  123)
+---
+haml_lint_marker_1
+HL.out = foo(:bar =>  123)
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+HL.out = foo(bar: 123)
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+%tag= foo(bar: 123)
+
+
+!!! fixes tag's script that was indented by a tag
+%tag
+  %tag= foo(:bar =>  123)
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  HL.out = foo(:bar =>  123)
+  haml_lint_marker_5
+  haml_lint_tag_placeholder
+end
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  HL.out = foo(bar: 123)
+  haml_lint_marker_5
+  haml_lint_tag_placeholder
+end
+---
+%tag
+  %tag= foo(bar: 123)
+
+
+!!! fixes script that was indented by ruby code
+- deeper do
+  %tag= foo(:bar =>  123)
+---
+haml_lint_marker_1
+deeper do
+  haml_lint_marker_3
+  haml_lint_marker_4
+  HL.out = foo(:bar =>  123)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+haml_lint_marker_1
+deeper do
+  haml_lint_marker_3
+  haml_lint_marker_4
+  HL.out = foo(bar: 123)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+- deeper do
+  %tag= foo(bar: 123)
+
+
+!!! fixes script with multiple lines
+%tag= foo(:bar =>  123,
+          :hello =>  42)
+---
+haml_lint_marker_1
+HL.out = foo(:bar =>  123,
+             :hello =>  42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+HL.out = foo(bar: 123,
+             hello: 42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+%tag= foo(bar: 123,
+          hello: 42)
+
+
+!!! fixes script with multiple lines and extra indent
+%tag= foo(:bar =>  123,
+                :hello =>  42)
+---
+haml_lint_marker_1
+HL.out = foo(:bar =>  123,
+                   :hello =>  42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+HL.out = foo(bar: 123,
+             hello: 42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+%tag= foo(bar: 123,
+          hello: 42)
+
+
+!!! fixes script with multiple lines and missing indent
+%tag= foo(:bar =>  123,
+    :hello =>  42)
+---
+haml_lint_marker_1
+HL.out = foo(:bar =>  123,
+       :hello =>  42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+HL.out = foo(bar: 123,
+             hello: 42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+%tag= foo(bar: 123,
+          hello: 42)
+
+
+!!! fixes script with multiple lines and less indented than the tag is
+%tag
+  %tag= foo(:bar =>  123,
+:hello =>  42)
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  HL.out = foo(:bar =>  123,
+   :hello =>  42)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  HL.out = foo(bar: 123,
+               hello: 42)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+%tag
+  %tag= foo(bar: 123,
+            hello: 42)

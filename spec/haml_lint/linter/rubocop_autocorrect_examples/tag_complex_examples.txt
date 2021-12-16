@@ -1,0 +1,145 @@
+!# Contains examples that mix the different parts of tags that are
+!# autocorrectable: attributes and script
+
+!!! Attributes and a script, where the script contains a replica of the attributes
+%tag{:bar =>  123}= foo(:bar =>  123)
+---
+haml_lint_marker_1
+WWWW(:bar =>  123)
+haml_lint_marker_3
+haml_lint_marker_4
+HL.out = foo(:bar =>  123)
+haml_lint_marker_6
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: 123)
+haml_lint_marker_3
+haml_lint_marker_4
+HL.out = foo(bar: 123)
+haml_lint_marker_6
+haml_lint_tag_placeholder
+---
+%tag{bar: 123}= foo(bar: 123)
+
+
+!!! Attributes and a script, where the attributes contains a replica of the script
+%tag{:bar =>  spam(:bing =>  512)}= spam(:bing =>  512)
+---
+haml_lint_marker_1
+WWWW(:bar =>  spam(:bing =>  512))
+haml_lint_marker_3
+haml_lint_marker_4
+HL.out = spam(:bing =>  512)
+haml_lint_marker_6
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: spam(bing: 512))
+haml_lint_marker_3
+haml_lint_marker_4
+HL.out = spam(bing: 512)
+haml_lint_marker_6
+haml_lint_tag_placeholder
+---
+%tag{bar: spam(bing: 512)}= spam(bing: 512)
+
+
+!!! Attributes and a script, where the attributes and the script are identical
+%tag{foo(:bar =>  123)}= foo(:bar =>  123)
+---
+haml_lint_marker_1
+WWWW(foo(:bar =>  123))
+haml_lint_marker_3
+haml_lint_marker_4
+HL.out = foo(:bar =>  123)
+haml_lint_marker_6
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(foo(bar: 123))
+haml_lint_marker_3
+haml_lint_marker_4
+HL.out = foo(bar: 123)
+haml_lint_marker_6
+haml_lint_tag_placeholder
+---
+%tag{foo(bar: 123)}= foo(bar: 123)
+
+
+!!! Multiline attributes and single line script
+%tag{:bar =>  123,
+     :hello =>  42}= spam(:bing =>  512)
+---
+haml_lint_marker_1
+WWWW(:bar =>  123,
+     :hello =>  42)
+haml_lint_marker_4
+haml_lint_marker_5
+HL.out = spam(:bing =>  512)
+haml_lint_marker_7
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: 123,
+     hello: 42)
+haml_lint_marker_4
+haml_lint_marker_5
+HL.out = spam(bing: 512)
+haml_lint_marker_7
+haml_lint_tag_placeholder
+---
+%tag{bar: 123,
+     hello: 42}= spam(bing: 512)
+
+
+!!! Multiline attributes (containing the script on different line) and single line script
+%tag{:bar =>  spam(:bing =>  512),
+     :hello =>  42}= spam(:bing =>  512)
+---
+haml_lint_marker_1
+WWWW(:bar =>  spam(:bing =>  512),
+     :hello =>  42)
+haml_lint_marker_4
+haml_lint_marker_5
+HL.out = spam(:bing =>  512)
+haml_lint_marker_7
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: spam(bing: 512),
+     hello: 42)
+haml_lint_marker_4
+haml_lint_marker_5
+HL.out = spam(bing: 512)
+haml_lint_marker_7
+haml_lint_tag_placeholder
+---
+%tag{bar: spam(bing: 512),
+     hello: 42}= spam(bing: 512)
+
+
+!!! Multiline attributes (containing the script on same line) and single line script
+%tag{:bar =>  123,
+     :hello =>  spam(:bing =>  512)}= spam(:bing =>  512)
+---
+haml_lint_marker_1
+WWWW(:bar =>  123,
+     :hello =>  spam(:bing =>  512))
+haml_lint_marker_4
+haml_lint_marker_5
+HL.out = spam(:bing =>  512)
+haml_lint_marker_7
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: 123,
+     hello: spam(bing: 512))
+haml_lint_marker_4
+haml_lint_marker_5
+HL.out = spam(bing: 512)
+haml_lint_marker_7
+haml_lint_tag_placeholder
+---
+%tag{bar: 123,
+     hello: spam(bing: 512)}= spam(bing: 512)

@@ -10,32 +10,22 @@ module HamlLint::RubyExtraction
       from_ruby_lines = extract_from(initial_ruby_lines)
       to_ruby_lines = extract_from(corrected_ruby_lines)
 
-      haml_start_line_index = @haml_start_line - 1
-      nb_lines = [from_ruby_lines.size, to_ruby_lines.size].max
-      first_missing_line_index = nil
-
-      nb_lines.times do |i|
-        from_ruby_line = from_ruby_lines[i]
-        to_ruby_line = to_ruby_lines[i]
-
-        if to_ruby_line
-          if to_ruby_line !~ /\S/
-            # whitespace or empty
-            to_haml_line = ''
-          else
-            to_haml_line = "  #{to_ruby_line}"
-          end
-        end
-
-        if from_ruby_line.nil?
-          haml_lines.insert(haml_start_line_index + i, to_haml_line)
-        elsif to_ruby_line.nil?
-          first_missing_line_index ||= haml_start_line_index + i
-          haml_lines.delete_at(first_missing_line_index)
+      to_haml_lines = to_ruby_lines.map.with_index do |line, i|
+        if line !~ /\S/
+          # whitespace or empty
+          to_haml_line = ''
         else
-          haml_lines[haml_start_line_index + i] = to_haml_line
+          to_haml_line = "  #{line}"
         end
       end
+
+      haml_start_line_index = @haml_start_line - 1
+      haml_end_line_index = haml_start_line_index + from_ruby_lines.size - 1
+
+      haml_lines[haml_start_line_index..haml_end_line_index] = to_haml_lines
+      haml_end_line_index = haml_start_line_index + to_haml_lines.size - 1
+
+      assembler.lock_indent(haml_start_line_index..haml_end_line_index)
     end
   end
 end

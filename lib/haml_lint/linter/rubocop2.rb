@@ -33,14 +33,18 @@ module HamlLint
       extracted_source = assembler.ruby_source
       @last_extracted_source = extracted_source
 
-      return if extracted_source.source.empty?
+
+      if extracted_source.source.empty?
+        @last_new_ruby_source = ''
+        return
+      end
 
       new_ruby_source = process_ruby_source(extracted_source.source, extracted_source.source_map)
       @last_new_ruby_source = new_ruby_source
 
       if @autocorrect && new_ruby_source != extracted_source.source
         # Autocorrect did changes, so we must merge them back into the document
-        haml_lines = assembler.haml_lines_with_corrections(document.source_lines, new_ruby_source)
+        haml_lines = assembler.haml_lines_with_corrections(new_ruby_source)
         document.change_source(haml_lines.join("\n"))
       end
     end

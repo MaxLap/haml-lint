@@ -1,0 +1,143 @@
+!# Rubocop may sometimes change the indentation, such as when "ifs" are merged together.
+!# Couldn't find a cop that does such a transformation in older RuboCops, so this is/was
+!# tested against a newer one to make sure those behavior can happen.
+
+!!! Changes indentation of a plain {% rubocop_version >= '1.5' %}
+- if a
+  - if b
+    Lorem Ipsum
+---
+haml_lint_marker_1
+if a
+  if b
+    haml_lint_marker_4
+    haml_lint_plain_placeholder
+  end
+end
+---
+haml_lint_marker_1
+if a && b
+  haml_lint_marker_4
+  haml_lint_plain_placeholder
+end
+---
+- if a && b
+  Lorem Ipsum
+
+
+!!! Changes indentation of a plain with interpolation {% rubocop_version >= '1.5' %}
+- if a
+  - if b
+    Lorem #{foo(:bar =>  123)} Ipsum
+---
+haml_lint_marker_1
+if a
+  if b
+    haml_lint_marker_4
+    haml_lint_marker_5
+    HL.out = foo(:bar =>  123)
+    haml_lint_marker_7
+  end
+end
+---
+haml_lint_marker_1
+if a && b
+  haml_lint_marker_4
+  haml_lint_marker_5
+  HL.out = foo(bar: 123)
+  haml_lint_marker_7
+end
+---
+- if a && b
+  Lorem #{foo(bar: 123)} Ipsum
+
+
+!!! Changes indentation of a non-ruby filter {% rubocop_version >= '1.5' %}
+- if a
+  - if b
+    :filter
+      Lorem Ipsum
+      Dolor Sit Amet
+---
+haml_lint_marker_1
+if a
+  if b
+    haml_lint_marker_4
+    haml_lint_filter_placeholder
+  end
+end
+---
+haml_lint_marker_1
+if a && b
+  haml_lint_marker_4
+  haml_lint_filter_placeholder
+end
+---
+- if a && b
+  :filter
+    Lorem Ipsum
+    Dolor Sit Amet
+
+
+!!! Changes indentation of a non-ruby filter with interpolation {% rubocop_version >= '1.5' %}
+- if a
+  - if b
+    :filter
+      Lorem Ipsum
+      Dolor #{foo(:bar =>  123)} Sit Amet
+      Consectetur Adipiscing
+---
+haml_lint_marker_1
+if a
+  if b
+    haml_lint_marker_4
+    haml_lint_marker_5
+    HL.out = foo(:bar =>  123)
+    haml_lint_marker_7
+  end
+end
+---
+haml_lint_marker_1
+if a && b
+  haml_lint_marker_4
+  haml_lint_marker_5
+  HL.out = foo(bar: 123)
+  haml_lint_marker_7
+end
+---
+- if a && b
+  :filter
+    Lorem Ipsum
+    Dolor #{foo(bar: 123)} Sit Amet
+    Consectetur Adipiscing
+
+
+!!! Changes indentation of a ruby filter {% rubocop_version >= '1.5' %}
+- if a
+  - if b
+    :ruby
+      foo(:bar =>  123)
+---
+haml_lint_marker_1
+if a
+  if b
+    haml_lint_marker_4
+    haml_lint_marker_5
+    foo(:bar =>  123)
+    haml_lint_marker_7
+  end
+end
+---
+haml_lint_marker_1
+if a && b
+  haml_lint_marker_4
+  haml_lint_marker_5
+  foo(bar: 123)
+  haml_lint_marker_7
+end
+---
+- if a && b
+  :ruby
+    foo(bar: 123)
+
+

@@ -1,0 +1,10 @@
+
+!!! Has a placeholder of plain text
+hello world
+---
+haml_lint_plain_placeholder
+---
+haml_lint_plain_placeholder
+---
+hello world
+

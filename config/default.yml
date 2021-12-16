@@ -115,7 +115,9 @@ linters:
       - Style/Next
       #- Style/WhileUntilModifier
 
-    # Those are cops that are not already ignored that our auto-correct doesn't support
+    # Cops that only need to be ignored during autocorrect..
+    # Usually, this is because we would need a specific configuration, but we may not be able to
+    # force those.
     ignored_autocorrect_cops:
       #- Style/CaseLikeIf
       #- Style/CaseIndentation # When must always be indented deeper than case in haml's scripts

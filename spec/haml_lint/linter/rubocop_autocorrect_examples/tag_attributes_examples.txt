@@ -1,0 +1,226 @@
+!!! fixes attribute hash
+%tag{:bar =>  123}
+---
+haml_lint_marker_1
+WWWW(:bar =>  123)
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: 123)
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+%tag{bar: 123}
+
+
+!!! with multiple lines
+%tag{:bar =>  123,
+     :hello =>  42}
+---
+haml_lint_marker_1
+WWWW(:bar =>  123,
+     :hello =>  42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: 123,
+     hello: 42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+%tag{bar: 123,
+     hello: 42}
+
+!!! with multiple lines and extra indent
+%tag{:bar =>  123,
+        :hello =>  42}
+---
+haml_lint_marker_1
+WWWW(:bar =>  123,
+        :hello =>  42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: 123,
+     hello: 42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+%tag{bar: 123,
+     hello: 42}
+
+
+!!! with multiple lines and missing indent
+%tag-is-long{:bar =>  123,
+  :hello =>  42}
+---
+haml_lint_marker_1
+WWWWWWWWWWWW(:bar =>  123,
+  :hello =>  42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWWWWWWWWWW(bar: 123,
+             hello: 42)
+haml_lint_marker_4
+haml_lint_tag_placeholder
+---
+%tag-is-long{bar: 123,
+             hello: 42}
+
+
+!!! with multiple lines and less indented than the wrapping tag is
+%tag
+  %tag-is-long{:bar =>  123,
+ :hello =>  42}
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  WWWWWWWWWWWW(:bar =>  123,
+ :hello =>  42)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  WWWWWWWWWWWW(bar: 123,
+               hello: 42)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+%tag
+  %tag-is-long{bar: 123,
+               hello: 42}
+
+
+!!! fix attributes that were indented by a tag
+%tag
+  %tag{:bar =>  123, :hello =>  42}
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  WWWW(:bar =>  123, :hello =>  42)
+  haml_lint_marker_5
+  haml_lint_tag_placeholder
+end
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  WWWW(bar: 123, hello: 42)
+  haml_lint_marker_5
+  haml_lint_tag_placeholder
+end
+---
+%tag
+  %tag{bar: 123, hello: 42}
+
+
+!!! fix attributes that were indented by ruby code' do
+- deeper do
+  %tag{:bar =>  123, :hello =>  42}
+---
+haml_lint_marker_1
+deeper do
+  haml_lint_marker_3
+  haml_lint_marker_4
+  WWWW(:bar =>  123, :hello =>  42)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+haml_lint_marker_1
+deeper do
+  haml_lint_marker_3
+  haml_lint_marker_4
+  WWWW(bar: 123, hello: 42)
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+- deeper do
+  %tag{bar: 123, hello: 42}
+
+
+!!! ignores old style attribute hash
+%tag(bar  =  123)
+---
+haml_lint_tag_placeholder
+---
+haml_lint_tag_placeholder
+---
+%tag(bar  =  123)
+
+
+!!! fixes attribute methods
+%tag{foo(bar  , :hello =>  42)}
+---
+haml_lint_marker_1
+WWWW(foo(bar  , :hello =>  42))
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(foo(bar, hello: 42))
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+%tag{foo(bar, hello: 42)}
+
+
+!!! fixes attribute method that was indented by a tag
+%tag
+  %tag{foo(bar  , :hello =>  42)}
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  WWWW(foo(bar  , :hello =>  42))
+  haml_lint_marker_5
+  haml_lint_tag_placeholder
+end
+---
+if haml_lint_tag_indent
+  haml_lint_tag_placeholder
+  haml_lint_marker_3
+  WWWW(foo(bar, hello: 42))
+  haml_lint_marker_5
+  haml_lint_tag_placeholder
+end
+---
+%tag
+  %tag{foo(bar, hello: 42)}
+
+!!! fixes attribute method that was indented by ruby code
+- deeper do
+  %tag{foo(bar  , :hello =>  42)}
+---
+haml_lint_marker_1
+deeper do
+  haml_lint_marker_3
+  haml_lint_marker_4
+  WWWW(foo(bar  , :hello =>  42))
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+haml_lint_marker_1
+deeper do
+  haml_lint_marker_3
+  haml_lint_marker_4
+  WWWW(foo(bar, hello: 42))
+  haml_lint_marker_6
+  haml_lint_tag_placeholder
+end
+---
+- deeper do
+  %tag{foo(bar, hello: 42)}

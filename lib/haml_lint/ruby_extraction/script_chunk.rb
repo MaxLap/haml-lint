@@ -2,9 +2,17 @@
 
 module HamlLint::RubyExtraction
   class ScriptChunk < BaseChunk
+    attr_reader :must_start_chunk
+
+    def initialize(*args, must_start_chunk: false, **kwargs)
+      super(*args, **kwargs)
+      @must_start_chunk = must_start_chunk
+    end
+
     def fuse(other)
       return unless other.is_a?(ScriptChunk) || other.is_a?(ImplicitEndChunk)
       return if other.end_marker_indent_level.nil?
+      return if other.is_a?(ScriptChunk) && other.must_start_chunk
 
       nb_blank_lines_between = other.haml_start_line - haml_start_line - @ruby_lines.size
       blank_lines = nb_blank_lines_between > 0 ? [''] * nb_blank_lines_between : []
@@ -23,47 +31,57 @@ module HamlLint::RubyExtraction
     def transfer_correction(assembler, initial_ruby_lines, corrected_ruby_lines, haml_lines)
       from_ruby_lines = extract_from(initial_ruby_lines)
       to_ruby_lines = extract_from(corrected_ruby_lines)
+
+      from_last_indent = last_indent(from_ruby_lines)
+      to_last_indent = last_indent(to_ruby_lines)
+
       to_ruby_lines.reject! { |l| l.strip == 'end' }
 
-      haml_start_line_index = @haml_start_line - 1
-      nb_lines = [from_ruby_lines.size, to_ruby_lines.size].max
-      first_missing_line_index = nil
-
-      is_continued_line = false
       continued_line_indent_delta = 2
 
-      nb_lines.times do |i|
-        from_ruby_line = from_ruby_lines[i]
-        to_ruby_line = to_ruby_lines[i]
-
-        if to_ruby_line
-          if to_ruby_line !~ /\S/
-            # whitespace or empty
-            to_haml_line = ''
-          elsif is_continued_line
-            to_haml_line = HamlLint::Utils.indent(to_ruby_line, continued_line_indent_delta)
+      to_haml_lines = to_ruby_lines.map.with_index do |line, i|
+        if line !~ /\S/
+          # whitespace or empty lines, we don't want any indentation
+          ''
+        elsif line_starts_script?(to_ruby_lines, i)
+          code_start = line.index(/\S/)
+          if line[code_start..-1].start_with?(assembler.script_output_prefix)
+            line = line.sub(assembler.script_output_prefix, '')
+            continued_line_indent_delta = 2 - assembler.script_output_prefix.size
+            "#{line[0...code_start]}= #{line[code_start..-1]}"
           else
-            code_start = to_ruby_line.index(/\S/)
-            if assembler.script_output_prefix && to_ruby_line[code_start..-1].start_with?(assembler.script_output_prefix)
-              to_ruby_line = to_ruby_line.sub(assembler.script_output_prefix, '')
-              to_haml_line = "#{to_ruby_line[0...code_start]}= #{to_ruby_line[code_start..-1]}"
-              continued_line_indent_delta = 2 - assembler.script_output_prefix.size
-            else
-              to_haml_line = "#{to_ruby_line[0...code_start]}- #{to_ruby_line[code_start..-1]}"
-              continued_line_indent_delta = 2
-            end
+            continued_line_indent_delta = 2
+            "#{line[0...code_start]}- #{line[code_start..-1]}"
           end
-        end
-
-        if from_ruby_line.nil?
-          haml_lines.insert(haml_start_line_index + i, to_haml_line)
-        elsif to_ruby_line.nil?
-          first_missing_line_index ||= haml_start_line_index + i
-          haml_lines.delete_at(first_missing_line_index)
         else
-          haml_lines[haml_start_line_index + i] = to_haml_line
+          HamlLint::Utils.indent(line, continued_line_indent_delta)
         end
-        is_continued_line = !!(to_haml_line =~ /,[ \t]*\z/)
+      end
+
+      haml_start_line_index = @haml_start_line - 1
+      haml_end_line_index = haml_start_line_index + from_ruby_lines.size - 1
+
+      haml_lines[haml_start_line_index..haml_end_line_index] = to_haml_lines
+      haml_end_line_index = haml_start_line_index + to_haml_lines.size - 1
+
+      assembler.lock_indent(haml_start_line_index..haml_end_line_index)
+      assembler.fix_indent_after(haml_end_line_index, from_last_indent, to_last_indent)
+    end
+
+    def unfinished_script_line?(lines, line_index)
+      !!lines[line_index][/,[ \t]*\z/]
+    end
+
+    def line_starts_script?(lines, line_index)
+      return true if line_index == 0
+      !unfinished_script_line?(lines, line_index - 1)
+    end
+
+    def last_indent(lines)
+      (lines.size - 1).downto(0).each do |i|
+        next unless line_starts_script?(lines, i)
+        indent = lines[i] =~ /\S/
+        return indent if indent
       end
     end
   end
