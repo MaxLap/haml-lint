@@ -4,7 +4,7 @@
 module ExamplesParsingHelpers
   module_function
 
-  Example = Struct.new(:name, :string, :first_line_no)
+  Example = Struct.new(:name, :string, :path, :first_line_no)
 
   def examples_from(path)
     string = File.read(path)
@@ -35,11 +35,11 @@ module ExamplesParsingHelpers
                                            .gsub('%%', '         ')
                                            .gsub('^', '=')
         [
-          Example.new("(^ as -)#{title}", silent_example_string, cur_line_number),
-          Example.new("(^ as =)#{title}", out_example_string, cur_line_number),
+          Example.new("(^ as -)#{title}", silent_example_string, path, cur_line_number),
+          Example.new("(^ as =)#{title}", out_example_string, path, cur_line_number),
         ]
       else
-        Example.new(title, example_string, cur_line_number)
+        Example.new(title, example_string, path, cur_line_number)
       end
     end
 

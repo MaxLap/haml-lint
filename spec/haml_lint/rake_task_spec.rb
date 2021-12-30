@@ -7,7 +7,7 @@ describe HamlLint::RakeTask do
   before(:all) do
     config =
       Tempfile.new(%w[my-haml-lint.yml]).tap do |f|
-        f.write("linters:\n  MultilinePipe:\n    enabled: false\n  RuboCop:\n    enabled: false")
+        f.write("linters:\n  MultilinePipe:\n    enabled: false\n  RuboCop:\n    enabled: false\n  RuboCop2:\n    enabled: false")
         f.close
       end
 

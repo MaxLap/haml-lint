@@ -509,3 +509,19 @@ haml_lint_marker_3
   Lorem Ipsum
     Dolor #{foo(bar: 123)} Sit Amet<%= '  '%>
   Consectetur Adipiscing
+
+
+!!! Fixes interpolation in a tag's text
+%tag #{foo(:bar =>  123)}
+---
+haml_lint_marker_1
+HL.out = foo(:bar =>  123)
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+HL.out = foo(bar: 123)
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+%tag #{foo(bar: 123)}

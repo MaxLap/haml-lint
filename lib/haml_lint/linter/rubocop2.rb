@@ -14,7 +14,6 @@ module HamlLint
     SEVERITY_MAP = {
       error: :error,
       fatal: :error,
-
       convention: :warning,
       refactor: :warning,
       warning: :warning,
@@ -25,6 +24,9 @@ module HamlLint
     attr_accessor :last_new_ruby_source
 
     def visit_root(_node) # rubocop:disable Metrics/AbcSize
+      yield :skip_children
+      @rubocop_config = self.class.rubocop_config_store.for(document.file, config['sent_to_rubocop'])
+
       @last_extracted_source = nil
       @last_new_ruby_source = nil
 
@@ -32,7 +34,6 @@ module HamlLint
       assembler = extractor.assembler
       extracted_source = assembler.ruby_source
       @last_extracted_source = extracted_source
-
 
       if extracted_source.source.empty?
         @last_new_ruby_source = ''
@@ -51,12 +52,52 @@ module HamlLint
 
     private
 
+    class RubocopConfigStore
+      def initialize
+        @dir_to_config_path_cache = {}
+        @config_path_to_config_cache = {}
+      end
+
+      def config_path_for(path)
+        dir = if File.directory?(path)
+                path
+              else
+                File.dirname(path)
+              end
+
+        @dir_to_config_path_cache[dir] ||= ::RuboCop::ConfigLoader.configuration_file_for(dir)
+      end
+
+      def for(path, template_hash)
+        config_path = config_path_for(path)
+
+        @config_path_to_config_cache[config_path] ||= begin
+          build_config_with(config_path, template_hash)
+        end
+      end
+
+      def build_config_with(config_path, template_hash)
+        template_hash = template_hash.dup
+        template_hash['inherit_from'] = config_path
+
+        Tempfile.create(['.haml-lint-rubocop', '.yml'], Dir.pwd) do |tempfile|
+          tempfile.write(template_hash.to_yaml)
+          tempfile.close
+          ::RuboCop::ConfigLoader.configuration_from_file(tempfile.path)
+        end
+      end
+    end
+
     # A single CLI instance is shared between files to avoid RuboCop
     # having to repeatedly reload .rubocop.yml.
     def self.rubocop_cli # rubocop:disable Lint/IneffectiveAccessModifier:
       # The ivar is stored on the class singleton rather than the Linter instance
       # because it can't be Marshal.dump'd (as used by Parallel.map)
       @rubocop_cli ||= ::RuboCop::CLI.new
+    end
+
+    def self.rubocop_config_store
+      @rubocop_config_store = RubocopConfigStore.new
     end
 
     # Executes RuboCop against the given Ruby code, records the offenses as
@@ -69,7 +110,7 @@ module HamlLint
     def process_ruby_source(ruby, source_map)
       filename = document.file || 'ruby_script'
 
-      final_ruby = Tempfile.open([filename, '.rb']) do |tempfile|
+      final_ruby = Tempfile.open([File.basename(filename), '.rb']) do |tempfile|
         tempfile.write(ruby)
         tempfile.close
         extract_lints_from_offenses(lint_file(self.class.rubocop_cli, tempfile.path), source_map)
@@ -85,8 +126,12 @@ module HamlLint
     # @param rubocop [RuboCop::CLI]
     # @param file [String]
     # @return [Array<RuboCop::Cop::Offense>]
-    def lint_file(rubocop, file)
-      status = rubocop.run(rubocop_flags << file)
+    def lint_file(rubocop_cli, file)
+      if !ENV['HAML_LINT_RUBOCOP_CONF']
+        rubocop_cli.config_store.instance_variable_set(:@options_config, @rubocop_config)
+      end
+
+      status = rubocop_cli.run(rubocop_flags << file)
       unless [::RuboCop::CLI::STATUS_SUCCESS, ::RuboCop::CLI::STATUS_OFFENSES].include?(status)
         raise HamlLint::Exceptions::ConfigurationError,
               "RuboCop exited unsuccessfully with status #{status}." \

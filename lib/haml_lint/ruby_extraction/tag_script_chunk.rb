@@ -23,6 +23,7 @@ module HamlLint::RubyExtraction
       to_ruby_line = to_ruby_line.sub(assembler.script_output_prefix, '').sub(/^\s+/, '')
 
       affected_start_index = haml_lines[haml_start_line_index].rindex(from_ruby_line)
+
       haml_lines[haml_start_line_index][affected_start_index..-1] = to_ruby_line
 
       indent_delta = affected_start_index - assembler.script_output_prefix.size - first_to_line_indent
@@ -31,7 +32,7 @@ module HamlLint::RubyExtraction
         to_ruby_lines[i] = HamlLint::Utils.indent(to_ruby_lines[i], indent_delta)
       end
 
-      haml_end_line_index = haml_start_line_index + from_ruby_line.size
+      haml_end_line_index = haml_start_line_index + from_ruby_lines.size
 
       haml_lines[(haml_start_line_index+1)...haml_end_line_index] = to_ruby_lines[1..-1]
     end

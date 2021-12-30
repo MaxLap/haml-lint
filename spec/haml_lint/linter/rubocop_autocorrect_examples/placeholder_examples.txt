@@ -1,10 +1,21 @@
 
-!!! Has a placeholder of plain text
-hello world
+!!! Has a placeholder for plain text with no interpolation
+Lorem Ipsum
 ---
 haml_lint_plain_placeholder
 ---
 haml_lint_plain_placeholder
 ---
-hello world
+Lorem Ipsum
 
+
+!!! Has a placeholder for filter with no interpolation
+:filter
+  Lorem Ipsum
+---
+haml_lint_filter_placeholder
+---
+haml_lint_filter_placeholder
+---
+:filter
+  Lorem Ipsum

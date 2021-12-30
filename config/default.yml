@@ -123,6 +123,26 @@ linters:
       #- Style/CaseIndentation # When must always be indented deeper than case in haml's scripts
       - Layout/CaseIndentation # When must always be indented deeper than case in haml's scripts
 
+    sent_to_rubocop:
+      # Need this so that code gets formatted similarly to Haml's indentation,
+      # since haml-lint relies on Ruby's indentation being the same as Haml's.
+      Layout/EndAlignment:
+        EnforcedStyleAlignWith: start_of_line
+        Enabled: true
+
+      # Need this to avoid this transformation from happening:
+      #   - if a
+      #     = abc
+      #   - else
+      #     = bcd
+      # Into:
+      #   = if a
+      #     - abc
+      #   - else
+      #     - bcd
+      Style/ConditionalAssignment:
+        Enabled: false
+
   RuboCop2:
     <<: *defaults
 

@@ -26,6 +26,8 @@ module HamlLint
     # @return [Boolean] true if the source was changed (by autocorrect)
     attr_reader :source_was_changed
 
+    attr_reader :unescape_interpolation_to_original_cache
+
     # Parses the specified Haml code into a {Document}.
     #
     # @param source [String] Haml code to parse
@@ -87,6 +89,7 @@ module HamlLint
       @source_lines = @source.split(/\r\n|\r|\n/, -1)
 
       @tree = process_tree(HamlLint::Adapter.detect_class.new(@source).parse)
+      @unescape_interpolation_to_original_cache = Haml::Util.unescape_interpolation_to_original_cache_take_and_wipe
     rescue Haml::Error => e
       location = if e.line
                    "#{@file}:#{e.line}"

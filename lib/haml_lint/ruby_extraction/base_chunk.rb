@@ -55,8 +55,11 @@ module HamlLint::RubyExtraction
       source_lines[(cur_start_marker_index + 1)..(cur_end_marker_index - 1)]
     end
 
+    def start_marker_indent_level
+      ruby_lines.first[/ */].size / 2
+    end
+
     def full_assemble(assembler)
-      start_marker_indent_level = ruby_lines.first[/ */].size / 2
       @start_marker_line = assembler.add_marker(start_marker_indent_level)
 
       assemble_in(assembler)

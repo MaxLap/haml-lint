@@ -1,5 +1,29 @@
 # frozen_string_literal: true
 
+module Haml::Util
+  def self.unescape_interpolation_to_original_cache
+    Thread.current[:haml_lint_unescape_interpolation_to_original_cache] ||= {}
+  end
+
+  def self.unescape_interpolation_to_original_cache_take_and_wipe
+    value = unescape_interpolation_to_original_cache.dup
+    unescape_interpolation_to_original_cache.clear
+    value
+  end
+
+  # Haml does heavy transformations to strings that contain interpolation
+  # We use this monkey patch to have a way of recovering the original strings
+  # as they are in the haml files.
+  def unescape_interpolation_with_original_tracking(str, escape_html = nil)
+    value = unescape_interpolation_without_original_tracking(str, escape_html)
+    Haml::Util.unescape_interpolation_to_original_cache[value] = str
+    value
+  end
+
+  alias_method :unescape_interpolation_without_original_tracking, :unescape_interpolation
+  alias_method :unescape_interpolation, :unescape_interpolation_with_original_tracking
+end
+
 module HamlLint::RubyExtraction
   class ChunkExtractor
     include HamlLint::HamlVisitor
@@ -56,7 +80,8 @@ module HamlLint::RubyExtraction
       line_indentation = $1.size
 
       raw_code = lines.join("\n")
-      start_block = anonymous_block?(raw_code) || start_block_keyword?(raw_code)
+      start_block = self.class.anonymous_block?(raw_code) || self.class.start_block_keyword?(raw_code)
+      case_block = self.class.block_keyword(raw_code) == 'case'
 
       lines[0] = HamlLint::Utils.insert_after_indentation(lines[0], script_output_prefix)
 
@@ -81,15 +106,15 @@ module HamlLint::RubyExtraction
         must_start_chunk = true
       end
 
-      if start_block
-        increment_indent
-      end
+      increment_indent if start_block
+      increment_indent if case_block
 
       @ruby_chunks << ScriptChunk.new(node, lines, end_marker_indent_level: @indent_level,
                                       must_start_chunk: must_start_chunk)
 
       yield
 
+      decrement_indent if case_block
       if start_block
         decrement_indent
         @ruby_chunks << ImplicitEndChunk.new(node, ["#{'  ' * @indent_level}end"],
@@ -107,16 +132,17 @@ module HamlLint::RubyExtraction
       end
 
       code = lines.join("\n")
-      start_block = anonymous_block?(code) || start_block_keyword?(code)
+      start_block = self.class.anonymous_block?(code) || self.class.start_block_keyword?(code)
+      case_block = self.class.block_keyword(code) == 'case'
 
-      if start_block
-        increment_indent
-      end
+      increment_indent if start_block
+      increment_indent if case_block # Cases are actually double nested
 
       @ruby_chunks << ScriptChunk.new(node, lines, end_marker_indent_level: @indent_level)
 
       yield
 
+      decrement_indent if case_block
       if start_block
         decrement_indent
         @ruby_chunks << ImplicitEndChunk.new(node, ["#{'  ' * @indent_level}end"],
@@ -131,9 +157,18 @@ module HamlLint::RubyExtraction
       end
 
       attributes_code = additional_attributes.first
+      if !attributes_code && node.hash_attributes? && node.dynamic_attributes_sources.empty?
+        # No idea why .foo{:bar => 123} doesn't get here, but .foo{:bar => '123'} does...
+        # The code we get for the later is {:bar => '123'}.
+        # We normalize it by removing the { } so that it matches wha we normally get
+        attributes_code = node.dynamic_attributes_source[:hash][1...-1]
+      end
+
       if attributes_code
         # Attributes have different ways to be given to us:
         #   .foo{bar: 123} => "bar: 123"
+        #   .foo{:bar => 123} => ":bar => 123"
+        #   .foo{:bar => '123'} => "{:bar => '123'}" # No idea why this is different
         #   .foo(bar = 123) => '{"bar" => 123,}'
         #   .foo{html_attrs('fr-fr')} => html_attrs('fr-fr')
         # The (bar = 123) case is extra painful to autocorrect unless we allow
@@ -155,34 +190,33 @@ module HamlLint::RubyExtraction
         end
       end
 
-      # TODO: Handle this? (comes from check_tag_static_hash_source)
-      if node.hash_attributes? && node.dynamic_attributes_sources.empty?
-        binding.pry # Hey, we found this!
-        normalized_attr_source = node.dynamic_attributes_source[:hash].gsub(/\s*\n\s*/, ' ')
-
-        add_line(normalized_attr_source, node)
-      end
-
       if node.script && !node.script.empty?
         line_number = node.line
         line_number += raw_attributes_lines.size - 1 if raw_attributes_lines
 
         first_line_offset, script_lines = raw_ruby_lines_from_haml(node.script, line_number)
 
-        binding.pry if script_lines.nil?
+        if script_lines.nil?
+          interpolation_original = @document.unescape_interpolation_to_original_cache[node.script]
+          if interpolation_original
+            # This is a string with interpolation after a tag
+            # ex: %tag hello #{world}
+            line_start_index = @original_haml_lines[node.line - 1].rindex(interpolation_original)
+            add_interpolation_chunks(node, interpolation_original, node.line, line_start_index: line_start_index)
+          else
+            binding.pry
+          end
+        else
+          script_lines[0] = "#{'  ' * @indent_level}#{script_output_prefix}#{script_lines[0]}"
+          indent_delta = script_output_prefix.size - first_line_offset + @indent_level * 2
+          (1...script_lines.size).each do |i|
+            script_lines[i] = HamlLint::Utils.indent(script_lines[i], indent_delta)
+          end
 
-        #prefix_size = first_line_offset - @indent_level * 2
-
-        script_lines[0] = script_output_prefix + script_lines[0]
-        script_lines[0] = '  ' * @indent_level + script_lines[0]
-        indent_delta = script_output_prefix.size - first_line_offset + @indent_level * 2
-        (1...script_lines.size).each do |i|
-          script_lines[i] = HamlLint::Utils.indent(script_lines[i], indent_delta)
+          @ruby_chunks << TagScriptChunk.new(node, script_lines,
+                                             haml_start_line: line_number,
+                                             end_marker_indent_level: @indent_level)
         end
-
-        @ruby_chunks << TagScriptChunk.new(node, script_lines,
-                                           haml_start_line: line_number,
-                                           end_marker_indent_level: @indent_level)
       end
 
       has_children = !node.children.empty?
@@ -224,19 +258,11 @@ module HamlLint::RubyExtraction
                                             haml_start_line: node.line + 1,
                                             end_marker_indent_level: @indent_level)
       else
-        line_index = node.line - 1
-        filter_indent = @original_haml_lines[line_index][/^ */].size
         nb_chunks_before = @ruby_chunks.size
-
-        (1..nil).each do |i|
-          line = @original_haml_lines[line_index + i]
-          break if line.nil?
-
-          line_indent = line =~ /\S/
-          next unless line_indent
-          break if line_indent <= filter_indent
-
-          add_interpolation_chunks(node, line, line_index + 1 + i)
+        # For unknown reasons, haml doesn't escape interpolations in filters.
+        # This makes them easier to handle than plain (script) which have interpolation.
+        node.text.split("\n").each.with_index do |line, i|
+          add_interpolation_chunks(node, @original_haml_lines[node.line + i], node.line + i + 1)
         end
 
         if nb_chunks_before == @ruby_chunks.size
@@ -247,14 +273,14 @@ module HamlLint::RubyExtraction
       end
     end
 
-    def add_interpolation_chunks(node, line, haml_line_number)
+    def add_interpolation_chunks(node, line, haml_line_number, line_start_index: 0)
       Haml::Util.handle_interpolation(line) do |scanner|
         escapes = scanner[2].size
         next if escapes % 2 == 1
         char = scanner[3] # '{', '@' or '$'
         next if char != '{'
 
-        start_char_index = scanner.pos
+        start_char_index = line_start_index + scanner.pos
         interpolated_code = Haml::Util.balance(scanner, ?{, ?}, 1)[0][0...-1]
         interpolated_code = '  ' * @indent_level + script_output_prefix + interpolated_code
         @ruby_chunks << InterpolationChunk.new(node, [interpolated_code],
@@ -334,22 +360,22 @@ module HamlLint::RubyExtraction
       @script_output_prefix = 'HL.out = '
     end
 
-    def anonymous_block?(text)
+    def self.anonymous_block?(text)
       text =~ /\bdo\s*(\|\s*[^\|]*\s*\|)?(\s*#.*)?\z/
     end
 
     START_BLOCK_KEYWORDS = %w[if unless case begin for until while].freeze
-    def start_block_keyword?(text)
+    def self.start_block_keyword?(text)
       START_BLOCK_KEYWORDS.include?(block_keyword(text))
     end
 
     MID_BLOCK_KEYWORDS = %w[else elsif when rescue ensure].freeze
-    def mid_block_keyword?(text)
+    def self.mid_block_keyword?(text)
       MID_BLOCK_KEYWORDS.include?(block_keyword(text))
     end
 
     LOOP_KEYWORDS = %w[for until while].freeze
-    def block_keyword(text)
+    def self.block_keyword(text)
       # Need to handle 'for'/'while' since regex stolen from HAML parser doesn't
       if keyword = text[/\A\s*([^\s]+)\s+/, 1]
         return keyword if LOOP_KEYWORDS.include?(keyword)

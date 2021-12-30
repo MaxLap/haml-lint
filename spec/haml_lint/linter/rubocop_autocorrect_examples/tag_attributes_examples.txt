@@ -14,6 +14,24 @@ haml_lint_tag_placeholder
 %tag{bar: 123}
 
 
+!!! fixes attribute hash that is considered dynamic
+!# I don't understand what is different here, but it goes through a different path in the code
+!# `node.dynamic_attributes_sources` returns nothing, but `node.dynamic_attributes_source[:hash]` has content.
+%tag{:bar =>  '123'}
+---
+haml_lint_marker_1
+WWWW(:bar =>  '123')
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+haml_lint_marker_1
+WWWW(bar: '123')
+haml_lint_marker_3
+haml_lint_tag_placeholder
+---
+%tag{bar: '123'}
+
+
 !!! with multiple lines
 %tag{:bar =>  123,
      :hello =>  42}

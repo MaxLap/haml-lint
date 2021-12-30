@@ -274,3 +274,99 @@ haml_lint_marker_7
 ---
 = if this_is_short
   = this_is_short_too
+
+
+!!! Doesn't move up the out script from the children to the parent if
+- if a
+  = abc
+- else
+  = bcd
+---
+haml_lint_marker_1
+if a
+  HL.out = abc
+else
+  HL.out = bcd
+end
+haml_lint_marker_7
+---
+haml_lint_marker_1
+if a
+  HL.out = abc
+else
+  HL.out = bcd
+end
+haml_lint_marker_7
+---
+- if a
+  = abc
+- else
+  = bcd
+
+
+!!! Properly indents the markers around an else script
+- if something
+  Lorem Ipsum
+- else
+  Dolor Sit Amet
+---
+haml_lint_marker_1
+if something
+  haml_lint_marker_3
+  haml_lint_plain_placeholder
+  haml_lint_marker_5
+else
+  haml_lint_marker_7
+  haml_lint_plain_placeholder
+end
+---
+haml_lint_marker_1
+if something
+  haml_lint_marker_3
+  haml_lint_plain_placeholder
+  haml_lint_marker_5
+else
+  haml_lint_marker_7
+  haml_lint_plain_placeholder
+end
+---
+- if something
+  Lorem Ipsum
+- else
+  Dolor Sit Amet
+
+
+!!! Properly indents the markers around a when script
+- case something
+  - when a
+    Lorem Ipsum
+  - when b
+    Dolor Sit Amet
+---
+haml_lint_marker_1
+case something
+  when a
+    haml_lint_marker_4
+    haml_lint_plain_placeholder
+    haml_lint_marker_6
+  when b
+    haml_lint_marker_8
+    haml_lint_plain_placeholder
+end
+---
+haml_lint_marker_1
+case something
+  when a
+    haml_lint_marker_4
+    haml_lint_plain_placeholder
+    haml_lint_marker_6
+  when b
+    haml_lint_marker_8
+    haml_lint_plain_placeholder
+end
+---
+- case something
+  - when a
+    Lorem Ipsum
+  - when b
+    Dolor Sit Amet

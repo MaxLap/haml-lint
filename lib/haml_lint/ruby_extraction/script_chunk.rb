@@ -2,11 +2,15 @@
 
 module HamlLint::RubyExtraction
   class ScriptChunk < BaseChunk
+    attr_reader :haml_end_line
     attr_reader :must_start_chunk
 
-    def initialize(*args, must_start_chunk: false, **kwargs)
+    def initialize(*args, haml_end_line: nil, must_start_chunk: false, **kwargs)
       super(*args, **kwargs)
       @must_start_chunk = must_start_chunk
+
+      haml_end_line ||= haml_start_line + @ruby_lines.size - 1
+      @haml_end_line = haml_end_line
     end
 
     def fuse(other)
@@ -18,10 +22,19 @@ module HamlLint::RubyExtraction
       blank_lines = nb_blank_lines_between > 0 ? [''] * nb_blank_lines_between : []
       new_lines = @ruby_lines + blank_lines + other.ruby_lines
 
+      haml_end_line = other.is_a?(ScriptChunk) ? other.haml_end_line : self.haml_end_line
+
       ScriptChunk.new(node,
                       new_lines,
                       haml_start_line: haml_start_line,
+                      haml_end_line: haml_end_line,
                       end_marker_indent_level: other.end_marker_indent_level)
+    end
+
+    def start_marker_indent_level
+      indent_level = ruby_lines.first[/ */].size / 2
+      indent_level += 1 if ChunkExtractor.mid_block_keyword?(ruby_lines.first)
+      indent_level
     end
 
     def assemble_in(assembler)
@@ -59,7 +72,7 @@ module HamlLint::RubyExtraction
       end
 
       haml_start_line_index = @haml_start_line - 1
-      haml_end_line_index = haml_start_line_index + from_ruby_lines.size - 1
+      haml_end_line_index = @haml_end_line - 1
 
       haml_lines[haml_start_line_index..haml_end_line_index] = to_haml_lines
       haml_end_line_index = haml_start_line_index + to_haml_lines.size - 1
