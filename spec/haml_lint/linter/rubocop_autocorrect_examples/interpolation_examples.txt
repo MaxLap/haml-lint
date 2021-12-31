@@ -94,7 +94,7 @@ haml_lint_marker_6
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_marker_3 $$2
   HL.out = foo(:bar =>  123)
   haml_lint_marker_5
 end
@@ -117,7 +117,7 @@ end
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_marker_4 $$2
   HL.out = foo(:bar =>  123)
   haml_lint_marker_6
 end
@@ -171,7 +171,7 @@ Dolor #{abc(:hello =>  42)} Sit Amet
 haml_lint_marker_1
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
-haml_lint_marker_4
+haml_lint_marker_4 $$2
 HL.out = abc(:hello =>  42)
 haml_lint_marker_6
 ---
@@ -193,7 +193,7 @@ Dolor #{abc(:hello =>  42)} Sit Amet
 haml_lint_marker_1
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
-haml_lint_marker_4
+haml_lint_marker_4 $$2
 HL.out = abc(:hello =>  42)
 haml_lint_marker_6
 ---
@@ -214,10 +214,10 @@ Dolor #{foo(:bar =>  123)} Sit Amet
 Consectetur Adipiscing
 ---
 haml_lint_plain_placeholder
-haml_lint_marker_2
+haml_lint_marker_2 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_4
-haml_lint_plain_placeholder
+haml_lint_plain_placeholder $$3
 ---
 haml_lint_plain_placeholder
 haml_lint_marker_2
@@ -234,7 +234,7 @@ Consectetur Adipiscing
 :filter
   #{foo(:bar =>  123)} Lorem Ipsum
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -250,7 +250,7 @@ haml_lint_marker_3
 :filter
   Lorem #{foo(:bar =>  123)} Ipsum
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -266,7 +266,7 @@ haml_lint_marker_3
 :filter
   Lorem Ipsum #{foo(:bar =>  123)}
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -282,7 +282,7 @@ haml_lint_marker_3
 :filter
   #{foo(:bar =>  123)} Lorem foo(:bar =>  123) Ipsum
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -298,7 +298,7 @@ haml_lint_marker_3
 :filter
   Lorem foo(:bar =>  123) Ipsum #{foo(:bar =>  123)}
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -314,7 +314,7 @@ haml_lint_marker_3
 :filter
   #{foo(:bar =>  123)} Lorem #{foo(:bar =>  123)} Ipsum
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 haml_lint_marker_4
@@ -339,7 +339,7 @@ haml_lint_marker_6
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_marker_3 $$3
   HL.out = foo(:bar =>  123)
   haml_lint_marker_5
 end
@@ -364,7 +364,7 @@ end
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_marker_4 $$3
   HL.out = foo(:bar =>  123)
   haml_lint_marker_6
 end
@@ -398,7 +398,7 @@ haml_lint_filter_placeholder
 :filter
   Lorem \\#{foo(:bar =>  123)} Ipsum
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -428,10 +428,10 @@ Dolor #{foo(:bar =>  123)} Sit Amet
 Consectetur Adipiscing
 ---
 haml_lint_plain_placeholder
-haml_lint_marker_2
+haml_lint_marker_2 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_4
-haml_lint_plain_placeholder
+haml_lint_plain_placeholder $$3
 ---
 haml_lint_plain_placeholder
 haml_lint_marker_2
@@ -448,10 +448,10 @@ Consectetur Adipiscing
   Lorem #{foo(:bar =>  123)} Ipsum
   Dolor #{abc(:hello =>  42)} Sit Amet
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
-haml_lint_marker_4
+haml_lint_marker_4 $$3
 HL.out = abc(:hello =>  42)
 haml_lint_marker_6
 ---
@@ -472,10 +472,10 @@ haml_lint_marker_6
   Lorem #{foo(:bar =>  123)} Ipsum,
   Dolor #{abc(:hello =>  42)} Sit Amet
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
-haml_lint_marker_4
+haml_lint_marker_4 $$3
 HL.out = abc(:hello =>  42)
 haml_lint_marker_6
 ---
@@ -497,7 +497,7 @@ haml_lint_marker_6
     Dolor #{foo(:bar =>  123)} Sit Amet<%= '  '%>
   Consectetur Adipiscing
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$3
 HL.out = foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -514,14 +514,14 @@ haml_lint_marker_3
 !!! Fixes interpolation in a tag's text
 %tag #{foo(:bar =>  123)}
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 HL.out = foo(:bar =>  123)
-haml_lint_marker_3
-haml_lint_tag_placeholder
+haml_lint_marker_4
 ---
-haml_lint_marker_1
-HL.out = foo(bar: 123)
-haml_lint_marker_3
 haml_lint_tag_placeholder
+haml_lint_marker_2
+HL.out = foo(bar: 123)
+haml_lint_marker_4
 ---
 %tag #{foo(bar: 123)}

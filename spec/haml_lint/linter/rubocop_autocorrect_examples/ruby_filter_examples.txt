@@ -2,7 +2,7 @@
 :ruby
   foo(:bar =>  123)
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 foo(:bar =>  123)
 haml_lint_marker_3
 ---
@@ -18,7 +18,7 @@ haml_lint_marker_3
 :ruby
   foo(bar: 123)
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 foo(bar: 123)
 haml_lint_marker_3
 ---
@@ -35,9 +35,9 @@ haml_lint_marker_3
   foo(:bar =>  123)
   abc(:hello =>  42)
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 foo(:bar =>  123)
-abc(:hello =>  42)
+abc(:hello =>  42) $$3
 haml_lint_marker_4
 ---
 haml_lint_marker_1
@@ -56,10 +56,10 @@ haml_lint_marker_4
 
   abc(:hello =>  42)
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 foo(:bar =>  123)
-
-abc(:hello =>  42)
+                   $$3
+abc(:hello =>  42) $$4
 haml_lint_marker_5
 ---
 haml_lint_marker_1
@@ -81,11 +81,11 @@ haml_lint_marker_5
     abc(:hello =>  42)
   end
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 if spam
-  foo(:bar =>  123)
-  abc(:hello =>  42)
-end
+  foo(:bar =>  123) $$3
+  abc(:hello =>  42) $$4
+end $$5
 haml_lint_marker_6
 ---
 haml_lint_marker_1
@@ -109,11 +109,11 @@ haml_lint_marker_6
         abc(:hello =>  42)
   end
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 if spam
-      foo(:bar =>  123)
-      abc(:hello =>  42)
-end
+      foo(:bar =>  123) $$3
+      abc(:hello =>  42) $$4
+end $$5
 haml_lint_marker_6
 ---
 haml_lint_marker_1
@@ -137,11 +137,11 @@ haml_lint_marker_6
   abc(:hello =>  42)
   end
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 if spam
-foo(:bar =>  123)
-abc(:hello =>  42)
-end
+foo(:bar =>  123) $$3
+abc(:hello =>  42) $$4
+end $$5
 haml_lint_marker_6
 ---
 haml_lint_marker_1
@@ -162,9 +162,9 @@ haml_lint_marker_6
   def a; end
   def b; end
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 def a; end
-def b; end
+def b; end $$3
 haml_lint_marker_4
 ---
 haml_lint_marker_1
@@ -186,11 +186,11 @@ haml_lint_marker_4
 
   # The empty-line above can mess with the merging logic
 ---
-haml_lint_marker_1
+haml_lint_marker_1 $$2
 def a; end
-def b; end
-
-# The empty-line above can mess with the merging logic
+def b; end $$3
+           $$4
+# The empty-line above can mess with the merging logic $$5
 haml_lint_marker_6
 ---
 haml_lint_marker_1
@@ -216,7 +216,7 @@ haml_lint_marker_6
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_marker_3 $$3
   foo(:bar =>  123)
   haml_lint_marker_5
 end
@@ -241,7 +241,7 @@ end
 haml_lint_marker_1
 ^^deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_marker_4 $$3
   foo(:bar =>  123)
   haml_lint_marker_6
 end

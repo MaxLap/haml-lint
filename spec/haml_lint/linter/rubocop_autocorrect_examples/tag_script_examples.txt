@@ -1,15 +1,15 @@
 !!! fixes tag's script
 %tag= foo(:bar =>  123)
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 HL.out = foo(:bar =>  123)
-haml_lint_marker_3
-haml_lint_tag_placeholder
+haml_lint_marker_4
 ---
-haml_lint_marker_1
-HL.out = foo(bar: 123)
-haml_lint_marker_3
 haml_lint_tag_placeholder
+haml_lint_marker_2
+HL.out = foo(bar: 123)
+haml_lint_marker_4
 ---
 %tag= foo(bar: 123)
 
@@ -20,18 +20,18 @@ haml_lint_tag_placeholder
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_4
   HL.out = foo(:bar =>  123)
-  haml_lint_marker_5
-  haml_lint_tag_placeholder
+  haml_lint_marker_6
 end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
-  HL.out = foo(bar: 123)
-  haml_lint_marker_5
   haml_lint_tag_placeholder
+  haml_lint_marker_4
+  HL.out = foo(bar: 123)
+  haml_lint_marker_6
 end
 ---
 %tag
@@ -45,19 +45,19 @@ end
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_5
   HL.out = foo(:bar =>  123)
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+  haml_lint_marker_7
 end
 ---
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
-  HL.out = foo(bar: 123)
-  haml_lint_marker_6
   haml_lint_tag_placeholder
+  haml_lint_marker_5
+  HL.out = foo(bar: 123)
+  haml_lint_marker_7
 end
 ---
 - deeper do
@@ -68,17 +68,17 @@ end
 %tag= foo(:bar =>  123,
           :hello =>  42)
 ---
-haml_lint_marker_1
-HL.out = foo(:bar =>  123,
-             :hello =>  42)
-haml_lint_marker_4
 haml_lint_tag_placeholder
+haml_lint_marker_2
+HL.out = foo(:bar =>  123,
+             :hello =>  42) $$2
+haml_lint_marker_5
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 HL.out = foo(bar: 123,
              hello: 42)
-haml_lint_marker_4
-haml_lint_tag_placeholder
+haml_lint_marker_5
 ---
 %tag= foo(bar: 123,
           hello: 42)
@@ -88,17 +88,17 @@ haml_lint_tag_placeholder
 %tag= foo(:bar =>  123,
                 :hello =>  42)
 ---
-haml_lint_marker_1
-HL.out = foo(:bar =>  123,
-                   :hello =>  42)
-haml_lint_marker_4
 haml_lint_tag_placeholder
+haml_lint_marker_2
+HL.out = foo(:bar =>  123,
+                   :hello =>  42) $$2
+haml_lint_marker_5
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 HL.out = foo(bar: 123,
              hello: 42)
-haml_lint_marker_4
-haml_lint_tag_placeholder
+haml_lint_marker_5
 ---
 %tag= foo(bar: 123,
           hello: 42)
@@ -108,17 +108,17 @@ haml_lint_tag_placeholder
 %tag= foo(:bar =>  123,
     :hello =>  42)
 ---
-haml_lint_marker_1
-HL.out = foo(:bar =>  123,
-       :hello =>  42)
-haml_lint_marker_4
 haml_lint_tag_placeholder
+haml_lint_marker_2
+HL.out = foo(:bar =>  123,
+       :hello =>  42) $$2
+haml_lint_marker_5
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 HL.out = foo(bar: 123,
              hello: 42)
-haml_lint_marker_4
-haml_lint_tag_placeholder
+haml_lint_marker_5
 ---
 %tag= foo(bar: 123,
           hello: 42)
@@ -131,20 +131,20 @@ haml_lint_tag_placeholder
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_4
   HL.out = foo(:bar =>  123,
-   :hello =>  42)
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+   :hello =>  42) $$3
+  haml_lint_marker_7
 end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder
+  haml_lint_marker_4
   HL.out = foo(bar: 123,
                hello: 42)
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+  haml_lint_marker_7
 end
 ---
 %tag

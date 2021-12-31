@@ -118,6 +118,7 @@ module HamlLint::RubyExtraction
       if start_block
         decrement_indent
         @ruby_chunks << ImplicitEndChunk.new(node, ["#{'  ' * @indent_level}end"],
+                                             haml_start_line: @ruby_chunks.last.haml_end_line,
                                              end_marker_indent_level: @indent_level)
       end
     end
@@ -146,11 +147,25 @@ module HamlLint::RubyExtraction
       if start_block
         decrement_indent
         @ruby_chunks << ImplicitEndChunk.new(node, ["#{'  ' * @indent_level}end"],
+                                             haml_start_line: @ruby_chunks.last.haml_end_line,
                                              end_marker_indent_level: @indent_level)
       end
     end
 
     def visit_tag(node)
+      has_children = !node.children.empty?
+      if has_children
+        @ruby_chunks << PlaceholderChunk.new(node, ["#{'  ' * @indent_level}if haml_lint_tag_indent"],
+                                             end_marker_indent_level: nil)
+
+        increment_indent
+      end
+
+      # Always placing this placeholder so that if there can't be only one thing
+      # inside of the `if haml_lint_tag_indent`. This avoids the risk of RuboCop
+      # deciding that the `if` should be a modifier.
+      @ruby_chunks << PlaceholderChunk.new(node, ["#{'  ' * @indent_level}haml_lint_tag_placeholder"],
+                                           end_marker_indent_level: nil)
       additional_attributes = node.dynamic_attributes_sources
       if additional_attributes.size > 1
         binding.pry
@@ -183,10 +198,21 @@ module HamlLint::RubyExtraction
         # wrapped, we always wrap to place them similar to how they are in the code.
 
         if raw_attributes_lines
-          raw_attributes_lines = wrap_lines(raw_attributes_lines, first_line_offset - @indent_level * 2)
+          wrap_by = first_line_offset - @indent_level * 2
+          if wrap_by < 2
+            # Need 2 minimum, for "W("
+            extra_indent = 2 - wrap_by
+            raw_attributes_lines[1..-1] = raw_attributes_lines[1..-1].map do |line|
+              ' ' * extra_indent + line
+            end
+            wrap_by = 2
+          end
+          raw_attributes_lines = wrap_lines(raw_attributes_lines, wrap_by)
           raw_attributes_lines[0] = '  ' * @indent_level + raw_attributes_lines[0]
+
           @ruby_chunks << TagAttributesChunk.new(node, raw_attributes_lines,
-                                                 end_marker_indent_level: @indent_level)
+                                                 end_marker_indent_level: @indent_level,
+                                                 indent_to_remove: extra_indent)
         end
       end
 
@@ -219,22 +245,11 @@ module HamlLint::RubyExtraction
         end
       end
 
-      has_children = !node.children.empty?
-      if has_children
-        @ruby_chunks << PlaceholderChunk.new(node, ["#{'  ' * @indent_level}if haml_lint_tag_indent"],
-                                             end_marker_indent_level: nil)
-
-        increment_indent
-      end
-
-      @ruby_chunks << PlaceholderChunk.new(node, ["#{'  ' * @indent_level}haml_lint_tag_placeholder"],
-                                           end_marker_indent_level: nil)
-
       if has_children
         yield
         decrement_indent
-
         @ruby_chunks << ImplicitEndChunk.new(node, ["#{'  ' * @indent_level}end"],
+                                             haml_start_line: @ruby_chunks.last.haml_end_line,
                                              end_marker_indent_level: nil)
       end
     end
@@ -278,7 +293,10 @@ module HamlLint::RubyExtraction
         escapes = scanner[2].size
         next if escapes % 2 == 1
         char = scanner[3] # '{', '@' or '$'
-        next if char != '{'
+        if Gem::Version.new(Haml::VERSION) >= Gem::Version.new('5')
+          # Before Haml 5, scanner didn't have a 3rd group, it only handled `#{}`
+          next if char != '{'
+        end
 
         start_char_index = line_start_index + scanner.pos
         interpolated_code = Haml::Util.balance(scanner, ?{, ?}, 1)[0][0...-1]

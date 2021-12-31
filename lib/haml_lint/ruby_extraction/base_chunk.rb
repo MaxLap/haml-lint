@@ -55,18 +55,28 @@ module HamlLint::RubyExtraction
       ruby_lines.first[/ */].size / 2
     end
 
+    def haml_end_line
+      @haml_start_line + @ruby_lines.size - 1 - skip_line_indexes_in_source_map.size
+    end
+
     def full_assemble(assembler)
       if wrap_in_markers
-        @start_marker_line = assembler.add_marker(start_marker_indent_level)
+        @start_marker_line = assembler.add_marker(start_marker_indent_level, haml_line: haml_start_line)
         assemble_in(assembler)
-        @end_marker_line = assembler.add_marker(@end_marker_indent_level)
+        @end_marker_line = assembler.add_marker(@end_marker_indent_level, haml_line: haml_end_line)
       else
         assemble_in(assembler)
       end
     end
 
     def assemble_in(assembler)
-      assembler.add_lines(@ruby_lines)
+      assembler.add_lines(@ruby_lines,
+                          haml_start_line: haml_start_line,
+                          skip_indexes_in_source_map: skip_line_indexes_in_source_map)
+    end
+
+    def skip_line_indexes_in_source_map
+      []
     end
 
     def wrap_in_markers

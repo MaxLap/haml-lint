@@ -72,12 +72,14 @@ module HamlLint::RubyExtraction
       @haml_lines
     end
 
-    def add_code(code)
-      add_lines(code.split("\n"))
-    end
-
-    def add_lines(lines)
-      # TODO source_map
+    def add_lines(lines, haml_start_line:, skip_indexes_in_source_map: [])
+      nb_skipped_source_map_lines = 0
+      lines.size.times do |i|
+        if skip_indexes_in_source_map.include?(i)
+          nb_skipped_source_map_lines += 1
+        end
+        @source_map[@ruby_lines.size + i + 1] = haml_start_line + i - nb_skipped_source_map_lines
+      end
       @ruby_lines.concat(lines)
     end
 
@@ -85,8 +87,8 @@ module HamlLint::RubyExtraction
       @ruby_lines.size
     end
 
-    def add_marker(indent_level)
-      add_lines(["#{'  ' * indent_level}#{MARKER_PREFIX}#{@ruby_lines.size + 1}"])
+    def add_marker(indent_level, haml_line:)
+      add_lines(["#{'  ' * indent_level}#{MARKER_PREFIX}#{@ruby_lines.size + 1}"], haml_start_line: haml_line)
       line_count
     end
 

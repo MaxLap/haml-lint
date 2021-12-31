@@ -9,9 +9,9 @@
 ---
 haml_lint_marker_1
 if a
-  if b
+  if b $$2
     haml_lint_marker_4
-    haml_lint_plain_placeholder
+    haml_lint_plain_placeholder $$3
   end
 end
 ---
@@ -32,9 +32,9 @@ end
 ---
 haml_lint_marker_1
 if a
-  if b
+  if b $$2
     haml_lint_marker_4
-    haml_lint_marker_5
+    haml_lint_marker_5 $$3
     HL.out = foo(:bar =>  123)
     haml_lint_marker_7
   end
@@ -61,9 +61,9 @@ end
 ---
 haml_lint_marker_1
 if a
-  if b
+  if b $$2
     haml_lint_marker_4
-    haml_lint_filter_placeholder
+    haml_lint_filter_placeholder $$3
   end
 end
 ---
@@ -89,9 +89,9 @@ end
 ---
 haml_lint_marker_1
 if a
-  if b
+  if b $$2
     haml_lint_marker_4
-    haml_lint_marker_5
+    haml_lint_marker_5 $$5
     HL.out = foo(:bar =>  123)
     haml_lint_marker_7
   end
@@ -120,9 +120,9 @@ end
 ---
 haml_lint_marker_1
 if a
-  if b
+  if b $$2
     haml_lint_marker_4
-    haml_lint_marker_5
+    haml_lint_marker_5 $$4
     foo(:bar =>  123)
     haml_lint_marker_7
   end

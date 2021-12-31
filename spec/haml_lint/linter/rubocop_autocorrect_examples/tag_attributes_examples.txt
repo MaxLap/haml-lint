@@ -1,15 +1,15 @@
 !!! fixes attribute hash
 %tag{:bar =>  123}
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 WWWW(:bar =>  123)
-haml_lint_marker_3
-haml_lint_tag_placeholder
+haml_lint_marker_4
 ---
-haml_lint_marker_1
-WWWW(bar: 123)
-haml_lint_marker_3
 haml_lint_tag_placeholder
+haml_lint_marker_2
+WWWW(bar: 123)
+haml_lint_marker_4
 ---
 %tag{bar: 123}
 
@@ -19,15 +19,15 @@ haml_lint_tag_placeholder
 !# `node.dynamic_attributes_sources` returns nothing, but `node.dynamic_attributes_source[:hash]` has content.
 %tag{:bar =>  '123'}
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 WWWW(:bar =>  '123')
-haml_lint_marker_3
-haml_lint_tag_placeholder
+haml_lint_marker_4
 ---
-haml_lint_marker_1
-WWWW(bar: '123')
-haml_lint_marker_3
 haml_lint_tag_placeholder
+haml_lint_marker_2
+WWWW(bar: '123')
+haml_lint_marker_4
 ---
 %tag{bar: '123'}
 
@@ -36,17 +36,17 @@ haml_lint_tag_placeholder
 %tag{:bar =>  123,
      :hello =>  42}
 ---
-haml_lint_marker_1
-WWWW(:bar =>  123,
-     :hello =>  42)
-haml_lint_marker_4
 haml_lint_tag_placeholder
+haml_lint_marker_2
+WWWW(:bar =>  123,
+     :hello =>  42) $$2
+haml_lint_marker_5
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 WWWW(bar: 123,
      hello: 42)
-haml_lint_marker_4
-haml_lint_tag_placeholder
+haml_lint_marker_5
 ---
 %tag{bar: 123,
      hello: 42}
@@ -55,17 +55,17 @@ haml_lint_tag_placeholder
 %tag{:bar =>  123,
         :hello =>  42}
 ---
-haml_lint_marker_1
-WWWW(:bar =>  123,
-        :hello =>  42)
-haml_lint_marker_4
 haml_lint_tag_placeholder
+haml_lint_marker_2
+WWWW(:bar =>  123,
+        :hello =>  42) $$2
+haml_lint_marker_5
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 WWWW(bar: 123,
      hello: 42)
-haml_lint_marker_4
-haml_lint_tag_placeholder
+haml_lint_marker_5
 ---
 %tag{bar: 123,
      hello: 42}
@@ -75,17 +75,17 @@ haml_lint_tag_placeholder
 %tag-is-long{:bar =>  123,
   :hello =>  42}
 ---
-haml_lint_marker_1
-WWWWWWWWWWWW(:bar =>  123,
-  :hello =>  42)
-haml_lint_marker_4
 haml_lint_tag_placeholder
+haml_lint_marker_2
+WWWWWWWWWWWW(:bar =>  123,
+  :hello =>  42) $$2
+haml_lint_marker_5
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 WWWWWWWWWWWW(bar: 123,
              hello: 42)
-haml_lint_marker_4
-haml_lint_tag_placeholder
+haml_lint_marker_5
 ---
 %tag-is-long{bar: 123,
              hello: 42}
@@ -98,20 +98,20 @@ haml_lint_tag_placeholder
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_4
   WWWWWWWWWWWW(:bar =>  123,
- :hello =>  42)
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+ :hello =>  42) $$3
+  haml_lint_marker_7
 end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder
+  haml_lint_marker_4
   WWWWWWWWWWWW(bar: 123,
                hello: 42)
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+  haml_lint_marker_7
 end
 ---
 %tag
@@ -125,18 +125,18 @@ end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_4
   WWWW(:bar =>  123, :hello =>  42)
-  haml_lint_marker_5
-  haml_lint_tag_placeholder
+  haml_lint_marker_6
 end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
-  WWWW(bar: 123, hello: 42)
-  haml_lint_marker_5
   haml_lint_tag_placeholder
+  haml_lint_marker_4
+  WWWW(bar: 123, hello: 42)
+  haml_lint_marker_6
 end
 ---
 %tag
@@ -150,19 +150,19 @@ end
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_5
   WWWW(:bar =>  123, :hello =>  42)
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+  haml_lint_marker_7
 end
 ---
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
-  WWWW(bar: 123, hello: 42)
-  haml_lint_marker_6
   haml_lint_tag_placeholder
+  haml_lint_marker_5
+  WWWW(bar: 123, hello: 42)
+  haml_lint_marker_7
 end
 ---
 - deeper do
@@ -182,15 +182,15 @@ haml_lint_tag_placeholder
 !!! fixes attribute methods
 %tag{foo(bar  , :hello =>  42)}
 ---
-haml_lint_marker_1
+haml_lint_tag_placeholder
+haml_lint_marker_2
 WWWW(foo(bar  , :hello =>  42))
-haml_lint_marker_3
-haml_lint_tag_placeholder
+haml_lint_marker_4
 ---
-haml_lint_marker_1
-WWWW(foo(bar, hello: 42))
-haml_lint_marker_3
 haml_lint_tag_placeholder
+haml_lint_marker_2
+WWWW(foo(bar, hello: 42))
+haml_lint_marker_4
 ---
 %tag{foo(bar, hello: 42)}
 
@@ -201,18 +201,18 @@ haml_lint_tag_placeholder
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_4
   WWWW(foo(bar  , :hello =>  42))
-  haml_lint_marker_5
-  haml_lint_tag_placeholder
+  haml_lint_marker_6
 end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
-  WWWW(foo(bar, hello: 42))
-  haml_lint_marker_5
   haml_lint_tag_placeholder
+  haml_lint_marker_4
+  WWWW(foo(bar, hello: 42))
+  haml_lint_marker_6
 end
 ---
 %tag
@@ -225,19 +225,19 @@ end
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_tag_placeholder $$2
+  haml_lint_marker_5
   WWWW(foo(bar  , :hello =>  42))
-  haml_lint_marker_6
-  haml_lint_tag_placeholder
+  haml_lint_marker_7
 end
 ---
 haml_lint_marker_1
 deeper do
   haml_lint_marker_3
-  haml_lint_marker_4
-  WWWW(foo(bar, hello: 42))
-  haml_lint_marker_6
   haml_lint_tag_placeholder
+  haml_lint_marker_5
+  WWWW(foo(bar, hello: 42))
+  haml_lint_marker_7
 end
 ---
 - deeper do

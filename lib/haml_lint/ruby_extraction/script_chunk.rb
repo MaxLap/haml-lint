@@ -4,10 +4,13 @@ module HamlLint::RubyExtraction
   class ScriptChunk < BaseChunk
     attr_reader :haml_end_line
     attr_reader :must_start_chunk
+    attr_reader :skip_line_indexes_in_source_map
 
-    def initialize(*args, haml_end_line: nil, must_start_chunk: false, **kwargs)
+    def initialize(*args, haml_end_line: nil, must_start_chunk: false,
+                   skip_line_indexes_in_source_map: [], **kwargs)
       super(*args, **kwargs)
       @must_start_chunk = must_start_chunk
+      @skip_line_indexes_in_source_map = skip_line_indexes_in_source_map
 
       haml_end_line ||= haml_start_line + @ruby_lines.size - 1
       @haml_end_line = haml_end_line
@@ -24,10 +27,16 @@ module HamlLint::RubyExtraction
 
       haml_end_line = other.is_a?(ScriptChunk) ? other.haml_end_line : self.haml_end_line
 
+      source_map_skips = @skip_line_indexes_in_source_map
+      source_map_skips.concat(other.skip_line_indexes_in_source_map.map { |i| i + @ruby_lines.size })
+      if other.is_a?(ImplicitEndChunk)
+        source_map_skips << @ruby_lines.size
+      end
       ScriptChunk.new(node,
                       new_lines,
                       haml_start_line: haml_start_line,
                       haml_end_line: haml_end_line,
+                      skip_line_indexes_in_source_map: source_map_skips,
                       end_marker_indent_level: other.end_marker_indent_level)
     end
 

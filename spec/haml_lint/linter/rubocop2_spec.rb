@@ -40,7 +40,26 @@ describe HamlLint::Linter::RuboCop2 do
 
     let(:start_haml) { steps_parts[0] }
 
-    let(:start_ruby) { steps_parts[1] }
+    let(:start_ruby) do
+      lines = steps_parts[1].split("\n", -1)
+      current_matching_line = 1
+      @source_map = {}
+      lines.each.with_index do |line, i|
+        next unless line =~ /\S/
+        mo = line.match(/^(.*?)\s*\$\$(\d+)$/)
+        if mo
+          lines[i] = mo[1]
+          current_matching_line = Integer(mo[2])
+        end
+        @source_map[i+1] = current_matching_line
+      end
+      lines.join("\n")
+    end
+
+    let(:source_map) do
+      start_ruby
+      @source_map
+    end
 
     let(:end_ruby) { steps_parts[2] }
 
@@ -84,6 +103,8 @@ describe HamlLint::Linter::RuboCop2 do
         matcher,
         -> { "Final HAML is different from expected. #{matcher.failure_message}" }
       )
+
+      subject.last_extracted_source.source_map.should == source_map
 
       document.source_was_changed.should be (start_haml != end_haml)
     end

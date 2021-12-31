@@ -18,7 +18,7 @@ haml_lint_marker_3
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_marker_3 $$2
   ^^foo(:bar =>  123)
   haml_lint_marker_5
 end
@@ -40,7 +40,7 @@ end
 ---
 haml_lint_marker_1
 deeper do
-  ^^foo(:bar =>  123)
+  ^^foo(:bar =>  123) $$2
 end
 haml_lint_marker_5
 ---
@@ -74,7 +74,7 @@ haml_lint_marker_3
 ---
 haml_lint_marker_1
 ^^foo(:bar =>  123)
-^^abc(:hello =>  42)
+^^abc(:hello =>  42) $$2
 haml_lint_marker_4
 ---
 haml_lint_marker_1
@@ -93,8 +93,8 @@ haml_lint_marker_4
 ---
 haml_lint_marker_1
 ^^foo(:bar =>  123)
-
-^^abc(:hello =>  42)
+                     $$2
+^^abc(:hello =>  42) $$3
 haml_lint_marker_5
 ---
 haml_lint_marker_1
@@ -114,7 +114,7 @@ haml_lint_marker_5
 ---
 haml_lint_marker_1
 ^^foo(:bar =>  123,
-%%    :hello =>  42)
+%%    :hello =>  42) $$2
 haml_lint_marker_4
 ---
 haml_lint_marker_1
@@ -133,7 +133,7 @@ haml_lint_marker_4
 ---
 haml_lint_marker_1
 ^^foo(:bar =>  123,<%= '  ' %>
-%%    :hello =>  42)
+%%    :hello =>  42) $$2
 haml_lint_marker_4
 ---
 haml_lint_marker_1
@@ -152,8 +152,8 @@ haml_lint_marker_4
 ---
 haml_lint_marker_1
 deeper do
-  ^^foo(something ,  hello ,
-  %%            world  , :abc =>  42)
+  ^^foo(something ,  hello , $$2
+  %%            world  , :abc =>  42) $$3
 end
 haml_lint_marker_6
 ---
@@ -176,8 +176,8 @@ haml_lint_marker_6
 ---
 haml_lint_marker_1
 deeper do
-  ^^foo(something ,  hello ,
-  %% world  , :abc =>  42)
+  ^^foo(something ,  hello , $$2
+  %% world  , :abc =>  42) $$3
 end
 haml_lint_marker_6
 ---
@@ -200,8 +200,8 @@ haml_lint_marker_6
 ---
 haml_lint_marker_1
 deeper do
-  foo(something ,  hello ,
-world  , :abc =>  42)
+  foo(something ,  hello , $$2
+world  , :abc =>  42) $$3
 end
 haml_lint_marker_6
 ---
@@ -240,7 +240,7 @@ haml_lint_marker_3
 ---
 haml_lint_marker_1
 if this_is_short
-  this_is_short_too
+  this_is_short_too $$2
 end
 haml_lint_marker_5
 ---
@@ -259,7 +259,7 @@ haml_lint_marker_5
 haml_lint_marker_1
 HL.out = if this_is_short
   haml_lint_marker_3
-  haml_lint_marker_4
+  haml_lint_marker_4 $$2
   HL.out = this_is_short_too
 end
 haml_lint_marker_7
@@ -284,9 +284,9 @@ haml_lint_marker_7
 ---
 haml_lint_marker_1
 if a
-  HL.out = abc
-else
-  HL.out = bcd
+  HL.out = abc $$2
+else $$3
+  HL.out = bcd $$4
 end
 haml_lint_marker_7
 ---
@@ -313,11 +313,11 @@ haml_lint_marker_7
 haml_lint_marker_1
 if something
   haml_lint_marker_3
-  haml_lint_plain_placeholder
-  haml_lint_marker_5
+  haml_lint_plain_placeholder $$2
+  haml_lint_marker_5 $$3
 else
   haml_lint_marker_7
-  haml_lint_plain_placeholder
+  haml_lint_plain_placeholder $$4
 end
 ---
 haml_lint_marker_1
@@ -345,13 +345,13 @@ end
 ---
 haml_lint_marker_1
 case something
-  when a
+  when a $$2
     haml_lint_marker_4
-    haml_lint_plain_placeholder
-    haml_lint_marker_6
+    haml_lint_plain_placeholder $$3
+    haml_lint_marker_6 $$4
   when b
     haml_lint_marker_8
-    haml_lint_plain_placeholder
+    haml_lint_plain_placeholder $$5
 end
 ---
 haml_lint_marker_1

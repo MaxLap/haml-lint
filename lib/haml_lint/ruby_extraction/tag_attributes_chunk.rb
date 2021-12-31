@@ -2,11 +2,22 @@
 
 module HamlLint::RubyExtraction
   class TagAttributesChunk < BaseChunk
+    def initialize(*args, indent_to_remove: , **kwargs)
+      super(*args, **kwargs)
+      @indent_to_remove = indent_to_remove
+    end
+
     def extract_from(source_lines)
       lines = super
 
-      lines[0] = lines[0].sub(/^\s*/, '').sub(/W+\(/, '')
+      lines[0] = lines[0].sub(/^\s*/, '').sub(/W+\(/, '') rescue binding.pry
       lines[-1] = lines[-1].sub(/\)\s*\Z/, '')
+
+      if @indent_to_remove
+        lines[1..-1] = lines[1..-1].map do |line|
+          line.sub(/^ {1,#{@indent_to_remove}}/, '')
+        end
+      end
 
       lines
     end

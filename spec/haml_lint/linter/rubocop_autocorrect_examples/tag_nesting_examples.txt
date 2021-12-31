@@ -8,7 +8,7 @@
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_plain_placeholder
+  haml_lint_plain_placeholder $$2
 end
 ---
 if haml_lint_tag_indent
@@ -27,9 +27,9 @@ end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  if haml_lint_tag_indent
+  if haml_lint_tag_indent $$2
     haml_lint_tag_placeholder
-    haml_lint_marker_5
+    haml_lint_marker_5 $$3
     HL.out = something
     haml_lint_marker_7
   end
@@ -57,10 +57,10 @@ end
 ---
 if haml_lint_tag_indent
   haml_lint_tag_placeholder
-  haml_lint_marker_3
+  haml_lint_marker_3 $$2
   if something
     haml_lint_marker_5
-    haml_lint_plain_placeholder
+    haml_lint_plain_placeholder $$3
   end
 end
 ---
@@ -86,9 +86,9 @@ end
 haml_lint_marker_1
 if something
   haml_lint_marker_3
-  if haml_lint_tag_indent
+  if haml_lint_tag_indent $$2
     haml_lint_tag_placeholder
-    haml_lint_plain_placeholder
+    haml_lint_plain_placeholder $$3
   end
 end
 ---
@@ -104,5 +104,3 @@ end
 - if something
   %tag
     Lorem Ipsum
-
-
