@@ -37,10 +37,6 @@ module HamlLint::RubyExtraction
       nil
     end
 
-    def assemble_in(assembler)
-      raise "Implement #assemble_in in #{self.class.name}"
-    end
-
     def transfer_correction(assembler, initial_ruby_lines, corrected_ruby_lines, haml_lines)
       raise "Implement #transfer_correction in #{self.class.name}"
     end
@@ -60,11 +56,21 @@ module HamlLint::RubyExtraction
     end
 
     def full_assemble(assembler)
-      @start_marker_line = assembler.add_marker(start_marker_indent_level)
+      if wrap_in_markers
+        @start_marker_line = assembler.add_marker(start_marker_indent_level)
+        assemble_in(assembler)
+        @end_marker_line = assembler.add_marker(@end_marker_indent_level)
+      else
+        assemble_in(assembler)
+      end
+    end
 
-      assemble_in(assembler)
+    def assemble_in(assembler)
+      assembler.add_lines(@ruby_lines)
+    end
 
-      @end_marker_line = assembler.add_marker(@end_marker_indent_level)
+    def wrap_in_markers
+      true
     end
 
     # Finds the line marker in the given source_lines

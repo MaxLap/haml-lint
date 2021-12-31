@@ -11,10 +11,6 @@ module HamlLint::RubyExtraction
       lines
     end
 
-    def assemble_in(assembler)
-      assembler.add_lines(@ruby_lines)
-    end
-
     def transfer_correction(assembler, initial_ruby_lines, corrected_ruby_lines, haml_lines)
       from_ruby_lines = extract_from(initial_ruby_lines)
       to_ruby_lines = extract_from(corrected_ruby_lines)

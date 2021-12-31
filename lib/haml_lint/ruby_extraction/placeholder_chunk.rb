@@ -5,8 +5,8 @@ module HamlLint::RubyExtraction
   # Used so that Rubocop doesn't think that there is nothing in `if` and other stuch structures,
   # so that it does corrections that make sense for the HAML.
   class PlaceholderChunk < BaseChunk
-    def full_assemble(assembler)
-      assembler.add_lines(@ruby_lines)
+    def wrap_in_markers
+      false
     end
 
     def transfer_correction(assembler, initial_ruby_lines, corrected_ruby_lines, haml_lines)
